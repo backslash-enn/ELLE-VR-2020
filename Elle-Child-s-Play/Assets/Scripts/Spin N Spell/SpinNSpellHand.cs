@@ -22,6 +22,7 @@ public class SpinNSpellHand : MonoBehaviour
     public Transform blockParent;
 
     public LayerMask lm;
+    public BlockCountManager bcm;
 
     private void Start()
     {
@@ -139,7 +140,9 @@ public class SpinNSpellHand : MonoBehaviour
         if (currentBlock == null) return;
 
         currentBlock.GetComponent<Block>().StopLightUpFace();
-        currentBlock.GetComponent<Rigidbody>().isKinematic = false;
+
+        if (bcm.frozenBlocks == false)
+            currentBlock.GetComponent<Rigidbody>().isKinematic = false;
         currentBlock.GetComponent<PhysicsThrow>().ActivatePhysicsThrow();
         currentBlock.parent = blockParent;
         currentBlock.GetComponent<Block>().highlightedPulse.SetActive(false);

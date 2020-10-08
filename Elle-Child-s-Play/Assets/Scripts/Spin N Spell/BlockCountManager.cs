@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class BlockCountManager : MonoBehaviour
@@ -7,6 +8,8 @@ public class BlockCountManager : MonoBehaviour
     public GameObject[] blocks;
     public GameObject afBlock, glBlock, mrBlock, sxBlock, yzBlock;
     private Dictionary<string, GameObject> blockStringMapping;
+    public GameObject blueTint;
+    public bool frozenBlocks;
 
     void Start()
     {
@@ -20,6 +23,12 @@ public class BlockCountManager : MonoBehaviour
         };
     }
 
+    void Update()
+    {
+        if (VRInput.bDown || VRInput.yDown)
+            ToggleFrozenBlocks();
+    }
+
     public void ReplaceBlock(GameObject blockToRemove)
     {
         for (int i = 0; i < 10; i++)
@@ -29,7 +38,16 @@ public class BlockCountManager : MonoBehaviour
                 float ranX = Random.Range(-0.3f, 0.3f);
                 float ranZ = Random.Range(-0.3f, 0.3f);
                 blocks[i] = Instantiate(blockStringMapping[blockToRemove.name], spawnPos.position + new Vector3(ranX, 0, ranZ), transform.rotation, transform);
+                if (frozenBlocks) blocks[i].GetComponent<Rigidbody>().isKinematic = true;
             }
         }
+    }
+
+    public void ToggleFrozenBlocks()
+    {
+        frozenBlocks = !frozenBlocks;
+        for (int i = 0; i < blocks.Length; i++)
+            blocks[i].GetComponent<Rigidbody>().isKinematic = frozenBlocks;
+        blueTint.SetActive(frozenBlocks);
     }
 }

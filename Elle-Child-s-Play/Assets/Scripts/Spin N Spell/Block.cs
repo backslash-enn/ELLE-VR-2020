@@ -59,7 +59,7 @@ public class Block : MonoBehaviour
         if (transform.parent.CompareTag("Hand") == true)
             LightUpFace();
 
-        // If you are not in a cubby, not being held by a hand, and are not in the block base, start the deletion timer
+        // If you are not in a cubby, not being held by a hand (or are frozen), and are not in the block base, start the deletion timer
         if (!r.isKinematic && !onBlockBase)
         {
             currentDeletionTimer -= Time.deltaTime;
@@ -129,7 +129,6 @@ public class Block : MonoBehaviour
             sticker.parent = transform;
 
             int accentNumber = sticker.name[sticker.name.Length - 1] - '0';
-            print("accent number: " + accentNumber);
             faceAccents[stickerFaceIndex] = accentNumber;
             sticker.position += sticker.transform.right * accentOffsets[accentNumber-1].x + sticker.transform.up * accentOffsets[accentNumber-1].y;
         }
