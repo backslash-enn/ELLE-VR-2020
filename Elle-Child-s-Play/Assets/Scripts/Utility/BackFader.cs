@@ -7,7 +7,6 @@ public class BackFader : MonoBehaviour
     private CanvasGroup cg;
     private bool fadingBlack, fadingColor;
     private float fadeSpeed = .09f;
-    public GameObject pauseMenu;
 
     void Start()
     {
@@ -40,12 +39,10 @@ public class BackFader : MonoBehaviour
     public void FadeToBlack()
     {
         fadingBlack = true;
-        pauseMenu.SetActive(true);
     }
 
     public void FadeToColor()
     {
         fadingColor = true;
-        pauseMenu.SetActive(false);
     }
 }

@@ -34,9 +34,10 @@ public class SpinNSpellManager : MonoBehaviour
     public Image gameModeCover, gameModeUncover;
     private bool gameModeCoverLockedOut;
 
+    public SpinNSpellHand leftHand, rightHand;
     public GameObject blocksParent;
     public GameObject littlePoof, bigPoof;
-    public Transform leftHand, rightHand, cubbyBasePosition;
+    public Transform cubbyBasePosition;
     public GameObject cubbyBottom;
 
     private List<Term> termList;
@@ -66,9 +67,6 @@ public class SpinNSpellManager : MonoBehaviour
     public GameObject termUIElement;
 
     private WaitForSeconds w;
-
-    private bool paused;
-    public BackFader fader;
 
     void Start()
     {
@@ -112,6 +110,7 @@ public class SpinNSpellManager : MonoBehaviour
         t = 0;
         projectorAud.Play();
         inGame = true;
+        PauseMenu.canPause = true;
 
         closingCTM = true;
         openingCTM = false;
@@ -119,7 +118,6 @@ public class SpinNSpellManager : MonoBehaviour
 
         for (int i = 0; i < moduleListUIParent.childCount; i++)
             moduleListUIParent.GetChild(i).GetComponent<MenuModule>().enabled = false;
-        e.enabled = false;
     }
 
     public void EndlessMenu()
@@ -289,24 +287,6 @@ public class SpinNSpellManager : MonoBehaviour
                 }
             }
         }
-        else
-        {
-            if(VRInput.startButtonDown)
-            {
-                if (!paused)
-                {
-                    Time.timeScale = 0;
-                    fader.FadeToBlack();
-                    paused = true;
-                }
-                else
-                {
-                    Time.timeScale = 1;
-                    fader.FadeToColor();
-                    paused = false;
-                }
-            }
-        }
 
         if(openingCTM)
         {
@@ -391,12 +371,12 @@ public class SpinNSpellManager : MonoBehaviour
             }
         }
 
-        Instantiate(littlePoof, rightHand.position, Quaternion.identity);
-        Instantiate(littlePoof, leftHand.position, Quaternion.identity);
+        Instantiate(littlePoof, rightHand.transform.position, Quaternion.identity);
+        Instantiate(littlePoof, leftHand.transform.position, Quaternion.identity);
         Instantiate(bigPoof, cubbyBasePosition);
         cubbyBottom.SetActive(true);
-        leftHand.parent.GetComponent<SpinNSpellHand>().StartGame();
-        rightHand.parent.GetComponent<SpinNSpellHand>().StartGame();
+        leftHand.StartGame();
+        rightHand.StartGame();
         aud.clip = poofSound;
         aud.Play();
 
@@ -633,14 +613,18 @@ public class SpinNSpellManager : MonoBehaviour
 
     private IEnumerator FinishIt()
     {
-        e.enabled = false;
-        // TODO: FIX HOLDING BLOCK WHILE ENDIGN GAME BUG
-        Instantiate(littlePoof, leftHand.position, Quaternion.identity);
-        Instantiate(littlePoof, rightHand.position, Quaternion.identity);
+        inGame = false;
+        PauseMenu.canPause = false;
+        Instantiate(littlePoof, leftHand.transform.position, Quaternion.identity);
+        Instantiate(littlePoof, rightHand.transform.position, Quaternion.identity);
         Instantiate(bigPoof, cubbyBasePosition);
         cubbyBottom.SetActive(false);
-        leftHand.parent.GetComponent<SpinNSpellHand>().EndGame();
-        rightHand.parent.GetComponent<SpinNSpellHand>().EndGame();
+
+        leftHand.DropCurrentBlock();
+        rightHand.DropCurrentBlock();
+        leftHand.EndGame();
+        rightHand.EndGame();
+
         aud.clip = switchModeSound;
         aud.Play();
 

@@ -5,9 +5,12 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: 
-    guid: 00000000000000000000000000000000
+  - enabled: 1
+    path: Assets/Scenes/Hubworld.unity
+    guid: e984c80230da354479e06199c648041a
+  - enabled: 1
+    path: Assets/Scenes/SpinNSpell.unity
+    guid: b1b14af7aa8f4584da3e8d080a5e0e42
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: ed58af1f02fdbf04a8060f4d68c2c0f9,
       type: 2}

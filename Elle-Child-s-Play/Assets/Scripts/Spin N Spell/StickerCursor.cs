@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class StickerCursor : MonoBehaviour
@@ -7,6 +8,8 @@ public class StickerCursor : MonoBehaviour
     private Color defaultColor, hoveredColor;
     public GameObject sticker;
     public bool holdingSticker;
+    public Transform[] stickerParents;
+    public GameObject[] stickerPrefabs;
 
     void Start()
     {
@@ -20,6 +23,8 @@ public class StickerCursor : MonoBehaviour
         holdingSticker = true;
         sticker.transform.parent = stickerT;
         sticker.transform.localPosition = Vector3.zero;
+        int stickerNum = int.Parse(sticker.name.Substring(sticker.name.Length - 1));
+        StartCoroutine(ReplaceSticker(stickerNum - 1));
     }
 
     public void RemoveSticker(bool destroy)
@@ -45,5 +50,12 @@ public class StickerCursor : MonoBehaviour
             sticker.GetComponent<Renderer>().material.color = defaultColor;
             sticker = null;
         }
+    }
+
+    private IEnumerator ReplaceSticker(int index)
+    {
+        yield return new WaitForSeconds(2);
+        GameObject g = Instantiate(stickerPrefabs[index], stickerParents[index]);
+        g.transform.localPosition = Vector3.zero;
     }
 }
