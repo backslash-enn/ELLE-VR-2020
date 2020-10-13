@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class SpinNSpellManager : MonoBehaviour
@@ -14,6 +15,8 @@ public class SpinNSpellManager : MonoBehaviour
     public AudioClip inGameMusic, endGameMusic, postGameMusic;
 
     private bool inGame = false;
+    private bool finishedGame = false;
+    private bool dontLeaveTooEarlyFlag;
     private List<Module> moduleList;
     private Module currentModule;
     private int sessionID;
@@ -250,25 +253,28 @@ public class SpinNSpellManager : MonoBehaviour
                     gameModeUncover.fillAmount = 0;
             }
 
-            if (gameModeCoverLockedOut == false)
+            if (!finishedGame)
             {
-                gameModeCover.fillAmount = VRInput.rightTrigger + VRInput.leftTrigger;
-                if (gameModeCover.fillAmount <= 0.05f)
-                    gameModeCover.fillAmount = 0;
-                if (VRInput.rightTrigger + VRInput.leftTrigger > 0.95f)
+                if (gameModeCoverLockedOut == false)
                 {
-                    currentGameMode = currentGameMode == GameMode.Quiz ? GameMode.Endless : GameMode.Quiz;
-                    gameModeText.text = currentGameMode == GameMode.Quiz ? "Quiz" : "Endless";
-                    gameModeCoverLockedOut = true;
-                    gameModeCover.fillAmount = 0;
-                    gameModeUncover.fillAmount = 1;
+                    gameModeCover.fillAmount = VRInput.rightTrigger + VRInput.leftTrigger;
+                    if (gameModeCover.fillAmount <= 0.05f)
+                        gameModeCover.fillAmount = 0;
+                    if (VRInput.rightTrigger + VRInput.leftTrigger > 0.95f)
+                    {
+                        currentGameMode = currentGameMode == GameMode.Quiz ? GameMode.Endless : GameMode.Quiz;
+                        gameModeText.text = currentGameMode == GameMode.Quiz ? "Quiz" : "Endless";
+                        gameModeCoverLockedOut = true;
+                        gameModeCover.fillAmount = 0;
+                        gameModeUncover.fillAmount = 1;
 
-                    aud.clip = switchModeSound;
-                    aud.Play();
+                        aud.clip = switchModeSound;
+                        aud.Play();
+                    }
                 }
+                else if (VRInput.rightTrigger + VRInput.leftTrigger < 0.05f)
+                    gameModeCoverLockedOut = false;
             }
-            else if (VRInput.rightTrigger + VRInput.leftTrigger < 0.05f)
-                gameModeCoverLockedOut = false;
 
             if(VRInput.bDown || VRInput.yDown)
             {
@@ -341,6 +347,12 @@ public class SpinNSpellManager : MonoBehaviour
                 musicAud.Play();
             }
         }
+
+        if (!inGame && !raiseProjectorScreen && !lowerProjectorScreen && !dontLeaveTooEarlyFlag && (VRInput.bDown || VRInput.yDown))
+            SceneManager.LoadScene("Hubworld");
+
+        if (finishedGame && !raiseProjectorScreen && !lowerProjectorScreen && !dontLeaveTooEarlyFlag && (VRInput.aDown || VRInput.xDown))
+            SceneManager.LoadScene("SpinNSpell");
     }
 
     private (float, float) ValidScrollRange(Transform currentActive, int totalElementCount, int visibleCount)
@@ -414,6 +426,9 @@ public class SpinNSpellManager : MonoBehaviour
             if (i >= termsBag.Count) break;
             cubbyRows[i].timerOn = true;
         }    
+
+        if(termList.Count == 0)
+            StartCoroutine(FinishIt());
     }
 
     private void FillTermBag()
@@ -615,7 +630,9 @@ public class SpinNSpellManager : MonoBehaviour
 
     private IEnumerator FinishIt()
     {
+        dontLeaveTooEarlyFlag = true;
         inGame = false;
+        finishedGame = true;
         PauseMenu.canPause = false;
         Instantiate(littlePoof, leftHand.transform.position, Quaternion.identity);
         Instantiate(littlePoof, rightHand.transform.position, Quaternion.identity);
@@ -632,15 +649,18 @@ public class SpinNSpellManager : MonoBehaviour
 
         finishCanvas.SetActive(true);
         scoreFractionText.text = score + "/" + termList.Count;
-        scorePercentageText.text = Mathf.RoundToInt(100 * score / (float)attempts) + "%";
+        scorePercentageText.text = termList.Count == 0 ? "-%" : Mathf.RoundToInt(100 * score / (float)attempts) + "%";
         ELLEAPI.EndSession(sessionID, score);
 
         yield return new WaitForSeconds(2);
 
         lowerProjectorScreen = true;
+        dontLeaveTooEarlyFlag = false;
         t = 1;
         projectorAud.Play();
 
+        if (blocksParent.GetComponent<BlockCountManager>().frozenBlocks)
+            blocksParent.GetComponent<BlockCountManager>().ToggleFrozenBlocks();
         blocksParent.SetActive(false);
 
         yield break;

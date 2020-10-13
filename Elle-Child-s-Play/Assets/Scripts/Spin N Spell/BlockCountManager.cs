@@ -47,7 +47,10 @@ public class BlockCountManager : MonoBehaviour
     {
         frozenBlocks = !frozenBlocks;
         for (int i = 0; i < blocks.Length; i++)
-            blocks[i].GetComponent<Rigidbody>().isKinematic = frozenBlocks;
+        {
+            if(!blocks[i].transform.parent.name.Contains("Hand"))
+                blocks[i].GetComponent<Rigidbody>().isKinematic = frozenBlocks;
+        }
         blueTint.SetActive(frozenBlocks);
     }
 }

@@ -23,7 +23,7 @@ public class PauseMenu : MonoBehaviour
 
     public void Pause()
     {
-        Time.timeScale = 0.001f;
+        Time.timeScale = 0;
         fader.FadeToBlack();
         paused = true;
         menu.SetActive(true);
@@ -39,6 +39,7 @@ public class PauseMenu : MonoBehaviour
 
     public void Restart ()
     {
+        Time.timeScale = 1;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 

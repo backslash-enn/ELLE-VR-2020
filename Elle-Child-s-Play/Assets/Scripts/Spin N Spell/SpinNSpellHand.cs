@@ -93,8 +93,8 @@ public class SpinNSpellHand : MonoBehaviour
             if (hit.transform.CompareTag("Block"))
             {
                 hitBeam.SetActive(currentBlock == null);
-                missBeam.SetActive(false); 
-                if (gripDown && currentBlock != hit.transform)
+                missBeam.SetActive(false);
+                if (gripDown && currentBlock != hit.transform && !PauseMenu.paused && !hit.transform.parent.name.Contains("Hand"))
                     ChangeCurrentBlock(hit.transform);
             }
             else
