@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class StickerCursor : MonoBehaviour
 {
@@ -23,7 +22,7 @@ public class StickerCursor : MonoBehaviour
         holdingSticker = true;
         sticker.transform.parent = stickerT;
         sticker.transform.localPosition = Vector3.zero;
-        int stickerNum = int.Parse(sticker.name.Substring(sticker.name.Length - 1));
+        int stickerNum = int.Parse(sticker.name[8].ToString());
         StartCoroutine(ReplaceSticker(stickerNum - 1));
     }
 

@@ -106,6 +106,8 @@ public class SpinNSpellManager : MonoBehaviour
     }
 
     public void RaiseProjector() {
+        if (inGame) return;
+
         raiseProjectorScreen = true;
         t = 0;
         projectorAud.Play();

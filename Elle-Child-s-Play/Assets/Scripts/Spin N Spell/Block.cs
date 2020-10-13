@@ -17,7 +17,7 @@ public class Block : MonoBehaviour
     private Vector3[] faceVectors, faceRotations;
     private char[] faceLetters;
     private int[] faceAccents;
-    private Vector2[] accentOffsets;
+    public Transform[] accentTransforms;
 
     private bool movingToCubby, cubbyLockout, onBlockBase;
     private float maxDeletionTimer = 5, currentDeletionTimer = 5;
@@ -124,13 +124,15 @@ public class Block : MonoBehaviour
             SpinNSpellHand p = sticker.transform.parent.parent.GetComponent<SpinNSpellHand>();
             if (p == null) return;
             p.PutStickerOnBlock();
-            sticker.position = transform.position + faceVectors[stickerFaceIndex] * .1001f;
-            sticker.LookAt(transform);
-            sticker.parent = transform;
+            sticker.parent = accentTransforms[stickerFaceIndex];
+            sticker.localPosition = sticker.localEulerAngles = Vector3.zero;
 
-            int accentNumber = sticker.name[sticker.name.Length - 1] - '0';
+            int accentNumber = sticker.name[8] - '0';
             faceAccents[stickerFaceIndex] = accentNumber;
-            sticker.position += sticker.transform.right * accentOffsets[accentNumber-1].x + sticker.transform.up * accentOffsets[accentNumber-1].y;
+
+            // Hard code support for accents that sit below the letter
+            if (accentNumber == 3)
+                sticker.localPosition -= new Vector3(0, 0.78f, 0);
         }
     }
 
@@ -274,16 +276,6 @@ public class Block : MonoBehaviour
             new Vector3(0, 90, 90),
             new Vector3(0, 90, -90),
             new Vector3(0, 90, 0)
-        };
-        accentOffsets = new Vector2[]
-        {
-            new Vector2(0, .08f),
-            new Vector2(0, -.08f),
-            new Vector2(0, .08f),
-            new Vector2(0, .08f),
-            new Vector2(0, .08f),
-            new Vector2(0, .08f),
-            new Vector2(0, .08f)
         };
     }
 
