@@ -12,21 +12,16 @@ public class ELLEAPI : MonoBehaviour
     private static readonly string serverLocation = "http://54.158.210.144:3000/api";
     private static readonly string jwt = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2MDE5NTg0MzIsIm5iZiI6MTYwMTk1ODQzMiwianRpIjoiNmRkYTg0YTYtOGI1NC00ODI3LTkyMzYtZWJkZGJlYjFjN2NhIiwiZXhwIjoxNjAzMTY4MDMyLCJpZGVudGl0eSI6OSwiZnJlc2giOmZhbHNlLCJ0eXBlIjoiYWNjZXNzIiwidXNlcl9jbGFpbXMiOiJzdSJ9.8DiuwxvITXnmEBG92UJJaNKBcJXuHLP7e3yDOYvpBsM";
 
+    public static void OTCLogin(string otcCode)
+    {
+        string response = MakeRequest("login", true, new Dictionary<string, string> { { "otc", otcCode } });
+        print("REPONSE: " + response);
+    }
+
     public static List<Module> GetModuleList()
     {
         string modulesJson = MakeRequest("modules");
-        /*
-        modulesJson = 
-@"[
-    {
-        ""moduleID"": 1,
-        ""groupID"": 1,
-        ""name"": ""TestModule"",
-        ""language"": ""EN"",
-        ""complexity"": null
-    }
-]";
-        */
+
         List<string> modulesListJson = SplitJsonArray(modulesJson);
         return GetModulesFromJsonArray(modulesListJson);
     }
@@ -166,14 +161,21 @@ public class ELLEAPI : MonoBehaviour
             }
         }
 
-        HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-
-        using (StreamReader reader = new StreamReader(response.GetResponseStream()))
+        try
         {
-            jsonResponse = reader.ReadToEnd();
-        }
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
-        return jsonResponse;
+            using (StreamReader reader = new StreamReader(response.GetResponseStream()))
+            {
+                jsonResponse = reader.ReadToEnd();
+            }
+
+            return jsonResponse;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public static void GetTexture(Term term)
