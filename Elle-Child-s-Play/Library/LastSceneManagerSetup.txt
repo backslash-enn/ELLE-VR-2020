@@ -1,5 +1,0 @@
-sceneSetups:
-- path: Assets/Elle COPY 10-13.unity
-  isLoaded: 1
-  isActive: 1
-  isSubScene: 0
