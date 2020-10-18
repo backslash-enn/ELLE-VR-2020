@@ -6,7 +6,7 @@ public class PauseMenu : MonoBehaviour
 {
     public EventSystem e;
     public GameObject menu, resumeButton;
-    public BackFader fader;
+    public Fader fader;
     public static bool paused, canPause;
 
     void Update()
@@ -24,7 +24,7 @@ public class PauseMenu : MonoBehaviour
     public void Pause()
     {
         Time.timeScale = 0;
-        fader.FadeToBlack();
+        fader.Fade();
         paused = true;
         menu.SetActive(true);
     }
@@ -32,7 +32,7 @@ public class PauseMenu : MonoBehaviour
     public void Resume()
     {
         Time.timeScale = 1;
-        fader.FadeToColor();
+        fader.Fade(false);
         paused = false;
         menu.SetActive(false);
     }

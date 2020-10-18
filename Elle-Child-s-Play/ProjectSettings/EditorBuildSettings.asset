@@ -10,7 +10,7 @@ EditorBuildSettings:
     guid: 0699a464d0b8587498a682752f78fe4b
   - enabled: 1
     path: Assets/Scenes/Hubworld.unity
-    guid: e984c80230da354479e06199c648041a
+    guid: f15d921d826c15642b371a9746d2eabf
   - enabled: 1
     path: Assets/Scenes/SpinNSpell.unity
     guid: b1b14af7aa8f4584da3e8d080a5e0e42

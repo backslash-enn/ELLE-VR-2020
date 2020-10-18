@@ -10,12 +10,45 @@ using UnityEngine.Networking;
 public class ELLEAPI : MonoBehaviour
 {
     private static readonly string serverLocation = "http://54.158.210.144:3000/api";
-    private static readonly string jwt = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2MDE5NTg0MzIsIm5iZiI6MTYwMTk1ODQzMiwianRpIjoiNmRkYTg0YTYtOGI1NC00ODI3LTkyMzYtZWJkZGJlYjFjN2NhIiwiZXhwIjoxNjAzMTY4MDMyLCJpZGVudGl0eSI6OSwiZnJlc2giOmZhbHNlLCJ0eXBlIjoiYWNjZXNzIiwidXNlcl9jbGFpbXMiOiJzdSJ9.8DiuwxvITXnmEBG92UJJaNKBcJXuHLP7e3yDOYvpBsM";
+    
+    private static string jwt = "";
+    public static string username;
+    public static int userID;
+    public static bool rightHanded;
+    public static string glovesSkin;
 
-    public static void OTCLogin(string otcCode)
+    public static string GetJWTFromOTC(string otcCode)
     {
-        string response = MakeRequest("login", true, new Dictionary<string, string> { { "otc", otcCode } });
-        print("REPONSE: " + response);
+        string response = MakeRequest("otclogin", true, new Dictionary<string, string> { { "otc", otcCode } });
+        if (response == null) return null;
+
+        var yesImLazy = JsonToDictionary(response);
+
+        return yesImLazy["access_token"];
+    }
+
+    public static bool LoginWithJWT(string currentJWT)
+    {
+        string response;
+        Dictionary<string, string> d;
+
+        response = MakeRequest("user");
+        if (response == null) return false;
+
+        d = JsonToDictionary(response);
+
+        username = d["username"];
+
+        response = MakeRequest("userpreferences");
+        if (response == null) return false;
+
+        d = JsonToDictionary(response);
+
+        userID = int.Parse(d["userID"]);
+        rightHanded = d["preferredHand"] == "R";
+        glovesSkin = d["vr_gloves"];
+
+        return true;
     }
 
     public static List<Module> GetModuleList()
@@ -141,7 +174,9 @@ public class ELLEAPI : MonoBehaviour
 
         HttpWebRequest request = (HttpWebRequest)WebRequest.Create($"{serverLocation}/{route}");
         request.Method = isPost ? "POST" : "GET";
-        request.Headers.Add(HttpRequestHeader.Authorization, $"Bearer {jwt}");
+
+        if(route != "otclogin")
+            request.Headers.Add(HttpRequestHeader.Authorization, $"Bearer {jwt}");
 
         if (isPost && form != null) {
             request.ContentType = "application/json";
@@ -228,15 +263,41 @@ public class ELLEAPI : MonoBehaviour
             yield return www.SendWebRequest();
 
             if (www.result == UnityWebRequest.Result.ConnectionError)
-            {
                 Debug.Log(www.error);
-                print("failed aud :(");
+            else
+                term.audio = DownloadHandlerAudioClip.GetContent(www);
+        }
+    }
+
+    private static Dictionary<string, string> JsonToDictionary(string json)
+    {
+        var dic = new Dictionary<string, string>();
+        int startIndex = json.IndexOf('"');
+        bool onKey = true;
+        string key = "";
+
+        // No nested objects!
+        while(startIndex != -1)
+        {
+            int endIndex;
+            endIndex = json.IndexOf('"', startIndex + 1);
+
+            if (endIndex == -1) break;
+
+            if(onKey)
+            {
+                key = json.Substring(startIndex, json.Length - endIndex);
+                onKey = false;
             }
             else
             {
-                term.audio = DownloadHandlerAudioClip.GetContent(www);
-                print("did aud succ!");
+                dic.Add(key, json.Substring(startIndex, json.Length - endIndex));
+                onKey = true;
             }
+
+            startIndex = json.IndexOf('"', endIndex + 1);
         }
+
+        return dic;
     }
 }
