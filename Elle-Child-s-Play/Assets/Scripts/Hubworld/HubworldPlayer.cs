@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -9,10 +8,12 @@ public class HubworldPlayer : MonoBehaviour
     public Transform cam;
     private Rigidbody rb;
     public bool inSpinNSpell;
+    public Fader blackFader;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        blackFader.Fade(false, .5f);
     }
 
     void Update()
@@ -30,6 +31,14 @@ public class HubworldPlayer : MonoBehaviour
         rb.velocity = moveDir * moveVel;
 
         if (VRInput.a && inSpinNSpell)
-            SceneManager.LoadScene("SpinNSpell");
+            StartCoroutine(LoadScene("SpinNSpell"));
+
+    }
+
+    private IEnumerator LoadScene(string scene)
+    {
+        blackFader.Fade(true, .5f);
+        yield return new WaitForSeconds(2);
+        SceneManager.LoadScene(scene);
     }
 }

@@ -89,7 +89,7 @@ public class CubbyRow : MonoBehaviour
 
     public void AddTime()
     {
-        currentTime += 20;
+        currentTime += 25;
         if (currentTime > maxTime) currentTime = maxTime;
     }
 

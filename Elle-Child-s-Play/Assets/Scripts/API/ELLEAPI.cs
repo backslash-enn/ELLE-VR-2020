@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -10,8 +11,8 @@ using UnityEngine.Networking;
 public class ELLEAPI : MonoBehaviour
 {
     private static readonly string serverLocation = "http://54.158.210.144:3000/api";
-    
-    private static string jwt = "";
+
+    private static string jwt = "";//"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2MDE5NTg0MzIsIm5iZiI6MTYwMTk1ODQzMiwianRpIjoiNmRkYTg0YTYtOGI1NC00ODI3LTkyMzYtZWJkZGJlYjFjN2NhIiwiZXhwIjoxNjAzMTY4MDMyLCJpZGVudGl0eSI6OSwiZnJlc2giOmZhbHNlLCJ0eXBlIjoiYWNjZXNzIiwidXNlcl9jbGFpbXMiOiJzdSJ9.8DiuwxvITXnmEBG92UJJaNKBcJXuHLP7e3yDOYvpBsM";
     public static string username;
     public static int userID;
     public static bool rightHanded;
@@ -22,31 +23,33 @@ public class ELLEAPI : MonoBehaviour
         string response = MakeRequest("otclogin", true, new Dictionary<string, string> { { "otc", otcCode } });
         if (response == null) return null;
 
-        var yesImLazy = JsonToDictionary(response);
+        dynamic d = JsonToDynamic(response);
 
-        return yesImLazy["access_token"];
+        return d.access_token;
     }
 
     public static bool LoginWithJWT(string currentJWT)
     {
         string response;
-        Dictionary<string, string> d;
+        dynamic d;
+
+        jwt = currentJWT;
 
         response = MakeRequest("user");
         if (response == null) return false;
 
-        d = JsonToDictionary(response);
+        d = JsonToDynamic(response);
 
-        username = d["username"];
+        username = d.username;
 
         response = MakeRequest("userpreferences");
         if (response == null) return false;
 
-        d = JsonToDictionary(response);
+        d = JsonToDynamic(response);
 
-        userID = int.Parse(d["userID"]);
-        rightHanded = d["preferredHand"] == "R";
-        glovesSkin = d["vr_gloves"];
+        userID = (int)d.userID;
+        rightHanded = d.preferredHand == "R";
+        glovesSkin = d.vrGloveColor;
 
         return true;
     }
@@ -103,6 +106,8 @@ public class ELLEAPI : MonoBehaviour
         int openIndex, closeIndex;
         List<string> elements = new List<string>();
 
+        print("json: " + json);
+
         openIndex = json.IndexOf('{');
         while (openIndex != -1)
         {
@@ -110,7 +115,6 @@ public class ELLEAPI : MonoBehaviour
             int openCount = 0;
             while(json[closeIndex] != '}' || openCount > 0)
             {
-                var test = json[closeIndex];
                 if (json[closeIndex] == '{') openCount++;
                 if (json[closeIndex] == '}') openCount--;
                 closeIndex++;
@@ -198,14 +202,14 @@ public class ELLEAPI : MonoBehaviour
 
         try
         {
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+          HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
-            using (StreamReader reader = new StreamReader(response.GetResponseStream()))
-            {
-                jsonResponse = reader.ReadToEnd();
-            }
+          using (StreamReader reader = new StreamReader(response.GetResponseStream()))
+          {
+              jsonResponse = reader.ReadToEnd();
+          }
 
-            return jsonResponse;
+          return jsonResponse;
         }
         catch
         {
@@ -269,35 +273,89 @@ public class ELLEAPI : MonoBehaviour
         }
     }
 
-    private static Dictionary<string, string> JsonToDictionary(string json)
+    public static dynamic JsonToDynamic(string json)
     {
-        var dic = new Dictionary<string, string>();
-        int startIndex = json.IndexOf('"');
-        bool onKey = true;
-        string key = "";
+        return ParseJsonObject(json, 0).Item1;
+    }
 
-        // No nested objects!
-        while(startIndex != -1)
+    private static (dynamic, int) ParseJsonObject(string json, int index)
+    {
+        int i = index;
+        dynamic d = new ExpandoObject();
+
+        string key;
+
+        while(i < json.Length && json[i] != '}')
         {
-            int endIndex;
-            endIndex = json.IndexOf('"', startIndex + 1);
+            // GET THE KEY. IF WHILE TRYING TO GET THE KEY WE HIT A 
+            // CLOSING CURLY BRACE, WE'VE HIT THE END OF THE OBJECT
+            int charIndex = i;
 
-            if (endIndex == -1) break;
+            while (json[charIndex] != '\"' && json[charIndex] != '}')
+                charIndex++;
 
-            if(onKey)
+            if (json[charIndex] == '}') return (d, charIndex);
+
+            key = json.Substring(charIndex + 1, json.IndexOf('\"', charIndex + 1) - charIndex - 1);
+
+            i = json.IndexOf(':', json.IndexOf('\"', charIndex + 1));
+            i++;
+
+            while (json[i] == ' ') i++;
+
+
+            // GET THE VALUE. IT CAN BE A STRING, FLOAT, BOOL, OR OBJECT.
+            // IF AN OBJECT, WE WILL HAVE TO MAKE A RECURSIVE CALL.
+
+            // Value is a another object
+            if (json[i] == '{')
             {
-                key = json.Substring(startIndex, json.Length - endIndex);
-                onKey = false;
+                var ret = ParseJsonObject(json, i);
+                ((IDictionary<string, object>)d).Add(key, ret.Item1);
+                i = ret.Item2 + 1;
             }
+            // Value is a string
+            else if (json[i] == '\"')
+            {
+                int j = i + 1;
+
+                do { j = json.IndexOf('\"', j); }
+                while (json[j - 1] == '\\');
+
+                ((IDictionary<string, object>)d).Add(key, json.Substring(i + 1, j - i - 1));
+                i = j + 1;
+            }
+            // Value is the bool true
+            else if(json.Length >= i + 4 &&
+            json[i] == 't' && json[i + 1] == 'r' && json[i + 2] == 'u' && json[i + 3] == 'e')
+            {
+                ((IDictionary<string, object>)d).Add(key, true);
+                i = i + 4;
+            }
+            // Value is the bool false
+            else if (json.Length >= i + 5 &&
+            json[i] == 'f' && json[i + 1] == 'a' && json[i + 2] == 'l' && json[i + 3] == 's' && json[i + 4] == 'e')
+            {
+                ((IDictionary<string, object>)d).Add(key, false);
+                i = i + 5;
+            }
+            // Value is a number
             else
             {
-                dic.Add(key, json.Substring(startIndex, json.Length - endIndex));
-                onKey = true;
-            }
+                int j = i;
+                while (json[j] != ' ' && 
+                    json[j] != ',' && 
+                    json[j] != '}' && 
+                    json[j] != '\r' && 
+                    json[j] != '\n') 
+                    j++;
 
-            startIndex = json.IndexOf('"', endIndex + 1);
+                string numString = json.Substring(i, j - i);
+                ((IDictionary<string, object>)d).Add(key, float.Parse(numString));
+                i = j;
+            }
         }
 
-        return dic;
+        return (d, i);
     }
 }

@@ -55,5 +55,7 @@ public class LoginManager : MonoBehaviour
             PlayerPrefs.SetString("jwt", jwt);
             SceneManager.LoadScene("Hubworld");
         }
+        else
+            PlayerPrefs.DeleteKey("jwt");
     }
 }

@@ -7,6 +7,9 @@ TagManager:
   - Block
   - Cubby
   - Hand
+  - Sticker Zone
+  - Sticker
+  - Menu
   layers:
   - Default
   - TransparentFX

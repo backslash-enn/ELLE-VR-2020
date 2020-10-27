@@ -71,8 +71,12 @@ public class SpinNSpellManager : MonoBehaviour
 
     private WaitForSeconds w;
 
+    public Fader blackFader;
+
     void Start()
     {
+        blackFader.Fade(false, .5f);
+
         aud = GetComponent<AudioSource>();
         termsBag = new List<Term>();
         chooseTermsMenuCG = chooseTermsMenu.GetComponent<CanvasGroup>();
@@ -203,6 +207,12 @@ public class SpinNSpellManager : MonoBehaviour
 
     void Update()
     {
+        if (!inGame && !ctmIsOpen && !raiseProjectorScreen && !lowerProjectorScreen && !dontLeaveTooEarlyFlag && (VRInput.bDown || VRInput.yDown))
+            SceneManager.LoadScene("Hubworld");
+
+        if (finishedGame && !raiseProjectorScreen && !lowerProjectorScreen && !dontLeaveTooEarlyFlag && (VRInput.aDown || VRInput.xDown))
+            SceneManager.LoadScene("SpinNSpell");
+
         if (!inGame)
         {
             GameObject currentActive = e.currentSelectedGameObject;
@@ -347,12 +357,6 @@ public class SpinNSpellManager : MonoBehaviour
                 musicAud.Play();
             }
         }
-
-        if (!inGame && !raiseProjectorScreen && !lowerProjectorScreen && !dontLeaveTooEarlyFlag && (VRInput.bDown || VRInput.yDown))
-            SceneManager.LoadScene("Hubworld");
-
-        if (finishedGame && !raiseProjectorScreen && !lowerProjectorScreen && !dontLeaveTooEarlyFlag && (VRInput.aDown || VRInput.xDown))
-            SceneManager.LoadScene("SpinNSpell");
     }
 
     private (float, float) ValidScrollRange(Transform currentActive, int totalElementCount, int visibleCount)
@@ -580,10 +584,13 @@ public class SpinNSpellManager : MonoBehaviour
             return;
         }
 
-        for (int i = 0; i < 5; i++)
+        if (correct)
         {
-            if (i < termsBag.Count)
-                cubbyRows[i].AddTime();
+            for (int i = 0; i < 5; i++)
+            {
+                if (i < termsBag.Count)
+                    cubbyRows[i].AddTime();
+            }
         }
 
         if (currentGameMode == GameMode.Endless && termsBag.Count < 6)

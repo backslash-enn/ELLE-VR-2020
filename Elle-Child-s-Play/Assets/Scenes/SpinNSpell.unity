@@ -2818,7 +2818,7 @@ MonoBehaviour:
   termListUIParent: {fileID: 1031596666}
   termUIElement: {fileID: 9221647408705484933, guid: 1e2c90464cfa9304bbc65ef22d8a031c,
     type: 3}
-  bcm: {fileID: 1002552534}
+  blackFader: {fileID: 1351147949}
 --- !u!114 &358508976
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3543,7 +3543,7 @@ AudioSource:
   m_PlayOnAwake: 1
   m_Volume: 0.4
   m_Pitch: 1
-  Loop: 0
+  Loop: 1
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
@@ -10664,7 +10664,7 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1351147944}
   m_Enabled: 1
-  m_Alpha: 0
+  m_Alpha: 1
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
