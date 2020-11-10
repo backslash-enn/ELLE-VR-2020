@@ -4,14 +4,12 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.UIElements;
 
 public class SelectGlove : MonoBehaviour
 {
     private int selectedGloveIdx = -1;
     private int lastSelected = -1;
     private bool defaultView = true;
-    private bool rightHanded = false;
    
 
     public Glove[] gloveList;
@@ -20,16 +18,12 @@ public class SelectGlove : MonoBehaviour
     public GameObject subHeader1;
     public GameObject subHeader2;
     public GameObject colorHeader;
-    private Text color;
-    private Text curHeader;
-    private Text curSubHeader1;
-    private Text curSubHeader2;
+    private TMP_Text color;
+    private TMP_Text curHeader;
+    private TMP_Text curSubHeader1;
+    private TMP_Text curSubHeader2;
     public GameObject confirmBtn;
     public GameObject cancelBtn;
-    public GameObject leftHand;
-    public GameObject rightHand;
-    public GameObject leftHandS;
-    public GameObject rightHandS;
 
 
     [System.Serializable]
@@ -39,18 +33,14 @@ public class SelectGlove : MonoBehaviour
         public GameObject glovePin;
     }
 
-    // Start is called before the first frame update
     void Start()
     {
-        curHeader = header.GetComponent<Text>();
-        curSubHeader1 = subHeader1.GetComponent<Text>();
-        curSubHeader2 = subHeader2.GetComponent<Text>();
-        color = colorHeader.GetComponent<Text>();
-        leftHand.GetComponent<UnityEngine.UI.Toggle>().isOn = false;
-        leftHand.GetComponent<UnityEngine.UI.Toggle>().isOn = false;
+        curHeader = header.GetComponent<TMP_Text>();
+        curSubHeader1 = subHeader1.GetComponent<TMP_Text>();
+        curSubHeader2 = subHeader2.GetComponent<TMP_Text>();
+        color = colorHeader.GetComponent<TMP_Text>();
     }
 
-    // Update is called once per frame
     void Update()
     {
         int len = gloveList.Length;
@@ -82,6 +72,7 @@ public class SelectGlove : MonoBehaviour
                     gloveList[i].glove.transform.rotation = Quaternion.Slerp(gloveList[i].glove.transform.rotation, Quaternion.Euler(0, 0, 0), Time.deltaTime * 5);
             }
 
+            print(color);
             color.gameObject.SetActive(true);
             color.text = gloveColors[selectedGloveIdx];
 
@@ -108,8 +99,6 @@ public class SelectGlove : MonoBehaviour
 
             confirmBtn.SetActive(true);
             cancelBtn.SetActive(true);
-            leftHand.SetActive(true);
-            rightHand.SetActive(true);
         }
 
         if (defaultView && lastSelected != -1)
@@ -153,14 +142,14 @@ public class SelectGlove : MonoBehaviour
     public void GloveSelected(int idx)
     {
         selectedGloveIdx = idx;
-        int gloveNumber = gloveList.Length;
+        //int gloveNumber = gloveList.Length;
 
         defaultView = false;
 
-        for (int i = 0; i < gloveNumber; i++)
-        {
-            gloveList[i].glove.gameObject.GetComponent<UnityEngine.UI.Button>().interactable = false;
-        }
+        //for (int i = 0; i < gloveNumber; i++)
+        //{
+        //    gloveList[i].glove.gameObject.GetComponent<Button>().interactable = false;
+        //}
     }
 
     public void CancelSelection()
@@ -170,46 +159,24 @@ public class SelectGlove : MonoBehaviour
 
         defaultView = true;
 
-        int gloveNumber = gloveList.Length;
+        //int gloveNumber = gloveList.Length;
 
-        for (int i = 0; i < gloveNumber; i++)
-        {
-            gloveList[i].glove.gameObject.GetComponent<UnityEngine.UI.Button>().interactable = true;
-        }
+        //for (int i = 0; i < gloveNumber; i++)
+        //{
+        //    gloveList[i].glove.gameObject.GetComponent<UnityEngine.UI.Button>().interactable = true;
+        //}
     }
 
     public void ConfirmSelection()
     {
         lastSelected = selectedGloveIdx;
-        int gloveNumber = gloveList.Length;
+        //int gloveNumber = gloveList.Length;
 
         defaultView = true;
 
-        for (int i = 0; i < gloveNumber; i++)
-        {
-            gloveList[i].glove.gameObject.GetComponent<UnityEngine.UI.Button>().interactable = true;
-        }
-    }
-
-    public void LeftHandSelected()
-    {
-        rightHanded = false;
-
-        leftHandS.GetComponent<UnityEngine.UI.Image>().enabled = true;
-        leftHand.GetComponent<UnityEngine.UI.Image>().enabled = false;
-        rightHandS.GetComponent<UnityEngine.UI.Image>().enabled = false;
-        rightHand.GetComponent<UnityEngine.UI.Image>().enabled = true;
-
-    }
-
-    public void RightHandSelected()
-    {
-        rightHanded = true;
-
-        rightHandS.GetComponent<UnityEngine.UI.Image>().enabled = true;
-        rightHand.GetComponent<UnityEngine.UI.Image>().enabled = false;
-        leftHandS.GetComponent<UnityEngine.UI.Image>().enabled = false;
-        leftHand.GetComponent<UnityEngine.UI.Image>().enabled = true;
-
+        //for (int i = 0; i < gloveNumber; i++)
+        //{
+        //    gloveList[i].glove.gameObject.GetComponent<UnityEngine.UI.Button>().interactable = true;
+        //}
     }
 }

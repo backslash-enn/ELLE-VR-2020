@@ -12,6 +12,8 @@ public class SpinNSpellManager : MonoBehaviour
     public AudioSource projectorAud, musicAud;
     public EventSystem e;
 
+    public Transform[] leftyFlippers;
+
     public AudioClip inGameMusic, endGameMusic, postGameMusic;
 
     private bool inGame = false;
@@ -75,6 +77,12 @@ public class SpinNSpellManager : MonoBehaviour
 
     void Start()
     {
+        if (ELLEAPI.rightHanded == false)
+        {
+            for (int i = 0; i < leftyFlippers.Length; i++)
+                leftyFlippers[i].eulerAngles = new Vector3(0, 180, 0);
+        }
+
         blackFader.Fade(false, .5f);
 
         aud = GetComponent<AudioSource>();
@@ -112,7 +120,8 @@ public class SpinNSpellManager : MonoBehaviour
             EndlessMenu();
     }
 
-    public void RaiseProjector() {
+    public void RaiseProjector()
+    {
         if (inGame) return;
 
         raiseProjectorScreen = true;
@@ -144,11 +153,11 @@ public class SpinNSpellManager : MonoBehaviour
         for (i = 0; i < termList.Count; i++)
         {
             MenuTerm term = Instantiate(termUIElement, termListUIParent).GetComponent<MenuTerm>();
-            term.InitializeStuff(termList[i].front, this, i);
+            term.InitializeStuff(termList[i].back, this, i);
             if (i == 0) firstToggle = term.transform.GetComponent<Toggle>();
-        } 
+        }
 
-        if(firstToggle != null)
+        if (firstToggle != null)
         {
             Navigation n;
 
@@ -195,8 +204,8 @@ public class SpinNSpellManager : MonoBehaviour
         for (int i = 0; i < termEnabled.Length; i++)
         {
             Toggle t = termListUIParent.GetChild(i).GetComponent<Toggle>();
-            if(t.isOn != enabled)
-            t.isOn = enabled;
+            if (t.isOn != enabled)
+                t.isOn = enabled;
         }
     }
 
@@ -225,12 +234,12 @@ public class SpinNSpellManager : MonoBehaviour
                 else if (moduleListUIParent.childCount > 0)
                     e.SetSelectedGameObject(moduleListUIParent.GetChild(0).gameObject);
             }
-            else if(ctmIsOpen)
+            else if (ctmIsOpen)
             {
                 if (e.currentSelectedGameObject.transform.parent == moduleListUIParent)
                     e.SetSelectedGameObject(startButton.gameObject);
 
-                if(termList.Count > 4)
+                if (termList.Count > 4)
                 {
                     // If the currentMenuOption isn't visible, fix that
                     (float minScroll, float maxScroll) = ValidScrollRange(currentActive.transform, termList.Count, 4);
@@ -286,9 +295,9 @@ public class SpinNSpellManager : MonoBehaviour
                     gameModeCoverLockedOut = false;
             }
 
-            if(VRInput.bDown || VRInput.yDown)
+            if (VRInput.bDown || VRInput.yDown)
             {
-                if(ctmIsOpen)
+                if (ctmIsOpen)
                 {
                     closingCTM = true;
                     openingCTM = false;
@@ -306,11 +315,11 @@ public class SpinNSpellManager : MonoBehaviour
             }
         }
 
-        if(openingCTM)
+        if (openingCTM)
         {
             chooseTermsMenuCG.alpha = Mathf.Lerp(chooseTermsMenuCG.alpha, 1, 7 * Time.deltaTime);
             chooseTermsMenu.transform.position = Vector3.Lerp(chooseTermsMenu.transform.position, ctmPosition, 7 * Time.deltaTime);
-            if(chooseTermsMenuCG.alpha > 0.999f)
+            if (chooseTermsMenuCG.alpha > 0.999f)
             {
                 chooseTermsMenuCG.alpha = 1;
                 chooseTermsMenu.transform.position = ctmPosition;
@@ -335,8 +344,8 @@ public class SpinNSpellManager : MonoBehaviour
         {
             t += 0.3f * Time.deltaTime;
             projectorScreen.position = new Vector3(projectorScreen.position.x, projectorMoveCurve.Evaluate(t), projectorScreen.position.z);
-            musicAud.volume -= 0.2f * Time.deltaTime; 
-            if(t >= 1)
+            musicAud.volume -= 0.2f * Time.deltaTime;
+            if (t >= 1)
             {
                 raiseProjectorScreen = false;
                 introCanvas.SetActive(false);
@@ -364,7 +373,7 @@ public class SpinNSpellManager : MonoBehaviour
         float minScroll, maxScroll;
         float stepSize = 1 / (float)(totalElementCount - visibleCount);
         int moduleIndex = -1;
-        for(int i = 0; i < currentActive.parent.childCount; i++)
+        for (int i = 0; i < currentActive.parent.childCount; i++)
         {
             if (currentActive.parent.GetChild(i) == currentActive)
                 moduleIndex = i;
@@ -398,7 +407,7 @@ public class SpinNSpellManager : MonoBehaviour
         aud.clip = poofSound;
         aud.Play();
 
-        
+
         FillTermBag();
 
         yield return new WaitForSeconds(2);
@@ -412,7 +421,7 @@ public class SpinNSpellManager : MonoBehaviour
             yield return new WaitForSeconds(.7f);
 
             // If this term happens to have an audio clip, play the clip and wait for it to finish before continuing
-            if(termsBag[i].audio != null)
+            if (termsBag[i].audio != null)
             {
                 cubbyRows[i].PlaySound(termsBag[i].audio);
                 yield return new WaitForSeconds(termsBag[i].audio.length + 0.4f);
@@ -429,9 +438,9 @@ public class SpinNSpellManager : MonoBehaviour
         {
             if (i >= termsBag.Count) break;
             cubbyRows[i].timerOn = true;
-        }    
+        }
 
-        if(termList.Count == 0)
+        if (termList.Count == 0)
             StartCoroutine(FinishIt());
     }
 
@@ -440,10 +449,10 @@ public class SpinNSpellManager : MonoBehaviour
         List<int> indicies = new List<int>();
         int currentIndex, i;
 
-        for (i = 0; i < termList.Count; i++) 
+        for (i = 0; i < termList.Count; i++)
             indicies.Add(i);
 
-        while(indicies.Count > 0) 
+        while (indicies.Count > 0)
         {
             currentIndex = Random.Range(0, indicies.Count);
             termsBag.Add(termList[indicies[currentIndex]]);
@@ -456,9 +465,9 @@ public class SpinNSpellManager : MonoBehaviour
 
     public void CheckIfCorrectWord(int position, char[] newWord, int[] accents)
     {
-        for(int i = 0; i < accents.Length; i++)
+        for (int i = 0; i < accents.Length; i++)
         {
-            switch(accents[i])
+            switch (accents[i])
             {
                 case 1:
                     if (newWord[i] == 'a')
@@ -510,8 +519,8 @@ public class SpinNSpellManager : MonoBehaviour
                     if (newWord[i] == 'n')
                         newWord[i] = 'ñ';
                     if (newWord[i] == 'o')
-                        newWord[i] = 'õ'; 
-                    if(newWord[i] == 'u')
+                        newWord[i] = 'õ';
+                    if (newWord[i] == 'u')
                         newWord[i] = 'ũ';
                     break;
                 case 5:
@@ -677,14 +686,14 @@ public class SpinNSpellManager : MonoBehaviour
     {
         List<char> current = new List<char>();
 
-        for(int i = 0; i < word.Length; i++)
+        for (int i = 0; i < word.Length; i++)
         {
             current.Add(' ');
             // Show 3 random letters
             for (int j = 0; j < 3; j++)
             {
                 int r = Random.Range(0, 52);
-                if (r >= 26)  r += 6;
+                if (r >= 26) r += 6;
                 current[i] = (char)(r + 'A');
                 textField.text = new string(current.ToArray());
                 yield return w;

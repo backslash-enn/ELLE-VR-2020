@@ -23,8 +23,8 @@ public class PauseMenu : MonoBehaviour
 
     public void Pause()
     {
+        fader.Fade(true, 1, true);
         Time.timeScale = 0;
-        fader.Fade();
         paused = true;
         menu.SetActive(true);
     }
@@ -45,6 +45,7 @@ public class PauseMenu : MonoBehaviour
 
     public void Quit()
     {
+        Time.timeScale = 1;
         SceneManager.LoadScene("Hubworld");
     }
 }

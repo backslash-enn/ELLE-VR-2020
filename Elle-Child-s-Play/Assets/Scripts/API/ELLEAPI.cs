@@ -54,6 +54,17 @@ public class ELLEAPI : MonoBehaviour
         return true;
     }
 
+    public static void UpdatePreferences()
+    {
+        var form = new Dictionary<string, string>
+        {
+            { "preferredHand", ELLEAPI.rightHanded ? "R" : "L" },
+            { "vrGloveColor",  ELLEAPI.glovesSkin }
+        };
+
+        MakeRequest("userpreferences", false, form, true);
+    }
+
     public static List<Module> GetModuleList()
     {
         string modulesJson = MakeRequest("modules");
@@ -105,8 +116,6 @@ public class ELLEAPI : MonoBehaviour
     {
         int openIndex, closeIndex;
         List<string> elements = new List<string>();
-
-        print("json: " + json);
 
         openIndex = json.IndexOf('{');
         while (openIndex != -1)
@@ -172,17 +181,36 @@ public class ELLEAPI : MonoBehaviour
         MakeRequest("endsession", true, form);
     }
 
-    private static string MakeRequest(string route, bool isPost = false, Dictionary<string, string> form = null)
+    private static string MakeRequest(string route, bool isPost = false, Dictionary<string, string> form = null, bool isPut = false)
     {
         string jsonResponse;
 
-        HttpWebRequest request = (HttpWebRequest)WebRequest.Create($"{serverLocation}/{route}");
-        request.Method = isPost ? "POST" : "GET";
+        if (form != null && !isPost && !isPut)
+        {
+            bool didFirst = false;
+            foreach (KeyValuePair<string, string> formEntry in form)
+            {
+                if (didFirst)
+                    route += "&";
+                else
+                {
+                    route += "?";
+                    didFirst = true;
+                }
+                route += $"{formEntry.Key}={formEntry.Value}";
+            }
+        }
 
-        if(route != "otclogin")
+        HttpWebRequest request = (HttpWebRequest)WebRequest.Create($"{serverLocation}/{route}");
+        if (isPost) request.Method = "POST";
+        else if (isPut) request.Method = "PUT";
+        else request.Method = "GET";
+
+        if (route != "otclogin")
             request.Headers.Add(HttpRequestHeader.Authorization, $"Bearer {jwt}");
 
-        if (isPost && form != null) {
+        if(form != null && (isPost || isPut))
+        {
             request.ContentType = "application/json";
             using (var streamWriter = new StreamWriter(request.GetRequestStream()))
             {

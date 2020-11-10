@@ -6,6 +6,8 @@ public class Kiosk : MonoBehaviour
     private bool open;
     private float tranSpeed = 10;
 
+    public bool ff;
+
     void Update()
     {
         if(open)
@@ -16,13 +18,19 @@ public class Kiosk : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        other.transform.GetComponent<HubworldPlayer>().inSpinNSpell = true;
+        if(!ff)
+            other.transform.GetComponent<HubworldPlayer>().inSpinNSpell = true;
+        else
+            other.transform.GetComponent<HubworldPlayer>().inFF = true;
         open = true;
     }
 
     private void OnTriggerExit(Collider other)
     {
-        other.transform.GetComponent<HubworldPlayer>().inSpinNSpell = false;
+        if (!ff)
+            other.transform.GetComponent<HubworldPlayer>().inSpinNSpell = false;
+        else
+            other.transform.GetComponent<HubworldPlayer>().inFF = false;
         open = false;
     }
 }

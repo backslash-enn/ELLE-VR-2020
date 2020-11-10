@@ -1,12 +1,17 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class HubworldMenu : MonoBehaviour
 {
-    public Text usernameText;
-    public Image leftHandedButton, rightHandedButton;
+    public TMP_Text usernameText;
+    public Image leftHandedButton, rightHandedButton, logoutPanel;
     public Transform leftHandPointer, rightHandPointer;
     public GameObject leftHandBeam, rightHandBeam, leftHandDot, rightHandDot;
+    public GloveSkinner leftSkinner, rightSkinner;
+
+    public SelectGlove sg;
 
     void Start()
     {
@@ -17,7 +22,14 @@ public class HubworldMenu : MonoBehaviour
 
     void Update()
     {
+        bool leftHandHovered, rightHandHovered, logoutHovered;
+        bool leftHandSelected, rightHandSelected;
         RaycastHit hit;
+
+        leftHandHovered = rightHandHovered = logoutHovered = false;
+        leftHandSelected = !ELLEAPI.rightHanded;
+        rightHandSelected = ELLEAPI.rightHanded;
+
         if (Physics.Raycast(leftHandPointer.position, leftHandPointer.forward, out hit))
         {
             if (hit.transform.CompareTag("Menu"))
@@ -28,29 +40,116 @@ public class HubworldMenu : MonoBehaviour
                 leftHandDot.transform.eulerAngles += new Vector3(0, 180, 0);
                 leftHandDot.transform.position = hit.point + leftHandDot.transform.forward * -0.001f;
 
-                if(hit.transform.name == "Left Hand Button")
-                    leftHandedButton.color = Color.white;
-                else
-                    leftHandedButton.color = Color.white * (ELLEAPI.rightHanded ? .6f : .9f);
+                if (hit.transform.name == "Left Hand Button")
+                {
+                    leftHandHovered = true;
+                    if (VRInput.leftTriggerDown)
+                        UpdateHandAndHopefullyInBackendToo(false);
+                }
                 if (hit.transform.name == "Right Hand Button")
-                    rightHandedButton.color = Color.white;
-                else
-                    rightHandedButton.color = Color.white * (ELLEAPI.rightHanded ? .9f : .6f);
+                {
+                    rightHandHovered = true;
+                    if (VRInput.leftTriggerDown)
+                        UpdateHandAndHopefullyInBackendToo(true);
+                }
+                if (hit.transform.name == "Logout Panel")
+                {
+                    logoutHovered = true;
+                    if (VRInput.leftTriggerDown)
+                        Logout();
+                }
+
+                if (VRInput.leftTriggerDown && hit.transform.name.Contains("Glove Button"))
+                    sg.GloveSelected(int.Parse(hit.transform.name.Substring(13)));
+                if (VRInput.leftTriggerDown && hit.transform.name == "Confirm Button")
+                    sg.ConfirmSelection();
+                if (VRInput.leftTriggerDown && hit.transform.name == "Cancel Button")
+                    sg.CancelSelection();
             }
             else
             {
                 leftHandBeam.SetActive(false);
                 leftHandDot.SetActive(false);
-                leftHandedButton.color = Color.white * (ELLEAPI.rightHanded ? .6f : .9f);
-                rightHandedButton.color = Color.white * (ELLEAPI.rightHanded ? .9f : .6f);
             }
         }
         else
         {
             leftHandBeam.SetActive(false);
             leftHandDot.SetActive(false);
-            leftHandedButton.color = Color.white * (ELLEAPI.rightHanded ? .6f : .9f);
-            rightHandedButton.color = Color.white * (ELLEAPI.rightHanded ? .9f : .6f);
         }
+
+        if (Physics.Raycast(rightHandPointer.position, rightHandPointer.forward, out hit))
+        {
+            if (hit.transform.CompareTag("Menu"))
+            {
+                rightHandBeam.SetActive(true);
+                rightHandDot.SetActive(true);
+                rightHandDot.transform.eulerAngles = hit.normal;
+                rightHandDot.transform.eulerAngles += new Vector3(0, 180, 0);
+                rightHandDot.transform.position = hit.point + leftHandDot.transform.forward * -0.001f;
+
+                if (hit.transform.name == "Left Hand Button")
+                {
+                    leftHandHovered = true;
+                    if (VRInput.rightTriggerDown)
+                        UpdateHandAndHopefullyInBackendToo(false);
+                }
+                if (hit.transform.name == "Right Hand Button")
+                {
+                    rightHandHovered = true;
+                    if (VRInput.rightTriggerDown)
+                        UpdateHandAndHopefullyInBackendToo(true);
+                }
+                if (hit.transform.name == "Logout Panel")
+                {
+                    logoutHovered = true;
+                    if (VRInput.rightTriggerDown)
+                        Logout();
+                }
+
+                if (VRInput.rightTriggerDown && hit.transform.name.Contains("Glove Button"))
+                        sg.GloveSelected(int.Parse(hit.transform.name.Substring(13)));
+                if (VRInput.rightTriggerDown && hit.transform.name == "Confirm Button")
+                    sg.ConfirmSelection();
+                if (VRInput.rightTriggerDown && hit.transform.name == "Cancel Button")
+                    sg.CancelSelection();
+            }
+            else
+            {
+                rightHandBeam.SetActive(false);
+                rightHandDot.SetActive(false);
+            }
+        }
+        else
+        {
+            rightHandBeam.SetActive(false);
+            rightHandDot.SetActive(false);
+        }
+
+        if (leftHandHovered) leftHandedButton.color = Color.white;
+        else leftHandedButton.color = Color.white * (leftHandSelected ? .9f : .6f);
+        if (rightHandHovered) rightHandedButton.color = Color.white;
+        else rightHandedButton.color = Color.white * (rightHandSelected ? .9f : .6f);
+        logoutPanel.color = new Color(1, 0.85f, 0.66f) * (logoutHovered ? .65f : 1);
+    }
+
+    void UpdateHandAndHopefullyInBackendToo(bool rightHanded)
+    {
+        ELLEAPI.rightHanded = rightHanded;
+        ELLEAPI.UpdatePreferences();
+    }
+
+    void UpdateSkinAndHopefullyInBackendToo(string skin)
+    {
+        ELLEAPI.glovesSkin = skin;
+        leftSkinner.UpdateSkin();
+        rightSkinner.UpdateSkin();
+        ELLEAPI.UpdatePreferences();
+    }
+    
+    void Logout()
+    {
+        PlayerPrefs.DeleteKey("jwt");
+        SceneManager.LoadScene("Login");
     }
 }

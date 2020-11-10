@@ -12,6 +12,7 @@ public class SpinNSpellHand : MonoBehaviour
     private Vector2 axis;
     private bool gripping, gripDown;
 
+
     public float pushPullFactor = 2.5f;
     private Vector3 lastPos, currentPos;
     public float rotationSpeed = 10;
