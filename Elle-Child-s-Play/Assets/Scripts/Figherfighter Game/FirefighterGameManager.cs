@@ -1,6 +1,7 @@
 ﻿using Obi;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -9,23 +10,25 @@ public class FirefighterGameManager : MonoBehaviour
     public Transform pointerController;
     public Transform hosePointer;
 
-    public ObiRigidbody hoseEnd;
-    public Transform hoseTipPointer;
-
-    public ParticleSystem waterPS;
-
     public ObiEmitter oe;
 
     public Balcony[] balconies;
+
+    public TMP_Text ledSign;
+
+    public string[] words =
+    {
+        "Horse",
+        "Giraffe",
+        "Monkey",
+        "Rhino",
+        "Pencil",
+        "Stapler",
+    };
     
     void Start()
     {
-        balconies[0].Activate("Horse");
-        balconies[1].Activate("Giraffe");
-        balconies[2].Activate("Monkey");
-        balconies[3].Activate("Rhino");
-        balconies[4].Activate("Pencil");
-        balconies[5].Activate("Stapler");
+        StartIndividualsCatergory();
     }
 
     void Update()
@@ -44,5 +47,21 @@ public class FirefighterGameManager : MonoBehaviour
         }
 
         oe.speed = Mathf.Lerp(0, 15, VRInput.rightTrigger);
+    }
+
+    private void StartIndividualsCatergory()
+    {
+        for(int i = 0; i < 6; i++)
+        {
+            int r = Random.Range(0, 16);
+            balconies[r].Activate(words[i]);
+        }
+        ledSign.text = "";
+        for (int i = 0; i < 3; i++)
+        {
+            int r = Random.Range(0, 6);
+            ledSign.text += words[r] + "\n";
+        }
+
     }
 }
