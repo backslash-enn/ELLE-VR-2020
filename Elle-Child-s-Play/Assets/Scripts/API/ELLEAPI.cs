@@ -69,6 +69,12 @@ public class ELLEAPI : MonoBehaviour
     {
         string modulesJson = MakeRequest("modules");
 
+        if (string.IsNullOrEmpty(modulesJson))
+        {
+            print("Module request failed...");
+            return null;
+        }
+
         List<string> modulesListJson = SplitJsonArray(modulesJson);
         return GetModulesFromJsonArray(modulesListJson);
     }
@@ -84,6 +90,7 @@ public class ELLEAPI : MonoBehaviour
     public static List<Term> GetTermsFromModule(int moduleID)
     {
         string questionsJson = MakeRequest("modulequestions", true, new Dictionary<string, string> { { "moduleID", moduleID.ToString() } });
+
         var temp = SplitJsonArray(questionsJson);
         List<Question> questions = GetQuestionsFromJsonArray(temp);
 

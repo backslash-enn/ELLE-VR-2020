@@ -52,7 +52,7 @@ public class HubworldPlayer : MonoBehaviour
         if (VRInput.a && inSpinNSpell)
             StartCoroutine(LoadScene("SpinNSpell"));
         if (VRInput.a && inFF)
-            StartCoroutine(LoadScene("FirefighterGame"));
+            StartCoroutine(LoadScene("Highrise Hellep"));
     }
 
     private IEnumerator LoadScene(string scene)

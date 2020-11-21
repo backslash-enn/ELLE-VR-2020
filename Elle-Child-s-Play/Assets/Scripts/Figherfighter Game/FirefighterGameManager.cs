@@ -3,10 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class FirefighterGameManager : MonoBehaviour
 {
+    private List<Module> moduleList;
+    public Transform moduleListUIParent;
+    public GameObject moduleUIElement;
+    public Color[] moduleElementColors;
+
     public Transform pointerController;
     public Transform hosePointer;
 
@@ -15,6 +21,10 @@ public class FirefighterGameManager : MonoBehaviour
     public Balcony[] balconies;
 
     public TMP_Text ledSign;
+
+    private AudioSource aud;
+
+    public Fader blackFader;
 
     public string[] words =
     {
@@ -28,7 +38,25 @@ public class FirefighterGameManager : MonoBehaviour
     
     void Start()
     {
-        StartIndividualsCatergory();
+        blackFader.Fade(false, .5f);
+
+        aud = GetComponent<AudioSource>();
+
+        // Start in the main menu, where you choose a module
+        moduleList = ELLEAPI.GetModuleList();
+        for (int i = 0; i < moduleList.Count; i++)
+        {
+            GameObject g = Instantiate(moduleUIElement, moduleListUIParent);
+            g.transform.GetChild(0).GetComponent<TMP_Text>().text = moduleList[i].name;
+            g.transform.GetChild(1).GetComponent<TMP_Text>().text = "LEVEL: " + moduleList[i].complexity;
+            g.transform.GetChild(2).GetChild(0).GetComponent<TMP_Text>().text = moduleList[i].language.ToUpper();
+
+            var b = g.GetComponent<Button>().colors;
+            b.normalColor = moduleElementColors[i % 5];
+            g.GetComponent<Button>().colors = b;
+
+            if (i == 0) EventSystem.current.SetSelectedGameObject(g);
+        }
     }
 
     void Update()
