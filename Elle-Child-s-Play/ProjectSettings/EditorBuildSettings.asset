@@ -15,7 +15,7 @@ EditorBuildSettings:
     path: Assets/Scenes/SpinNSpell.unity
     guid: b1b14af7aa8f4584da3e8d080a5e0e42
   - enabled: 1
-    path: Assets/Scenes/FirefighterGame.unity
+    path: Assets/Scenes/Highrise Hellep.unity
     guid: 24bc04b115c6acc44b117a00ce996bcd
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: ed58af1f02fdbf04a8060f4d68c2c0f9,
