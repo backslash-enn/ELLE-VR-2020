@@ -28,7 +28,7 @@ public class SpinNSpellManager : MonoBehaviour
     public TMP_Text scoreFractionText, scorePercentageText;
     public Transform moduleListUIParent;
     public GameObject moduleUIElement;
-    public Color[] moduleElementColors;
+    public Color[] moduleElementColors = new Color[1];
 
     private bool raiseProjectorScreen, lowerProjectorScreen;
     public Transform projectorScreen;
@@ -74,6 +74,8 @@ public class SpinNSpellManager : MonoBehaviour
     private WaitForSeconds w;
 
     public Fader blackFader;
+
+    public GameMenu menu;
 
     void Start()
     {
@@ -216,6 +218,8 @@ public class SpinNSpellManager : MonoBehaviour
 
     void Update()
     {
+        menu.goodToLeave = !raiseProjectorScreen && !lowerProjectorScreen && !dontLeaveTooEarlyFlag;
+
         if (!inGame && !ctmIsOpen && !raiseProjectorScreen && !lowerProjectorScreen && !dontLeaveTooEarlyFlag && (VRInput.bDown || VRInput.yDown))
             SceneManager.LoadScene("Hubworld");
 
@@ -706,5 +710,3 @@ public class SpinNSpellManager : MonoBehaviour
         }
     }
 }
-
-public enum GameMode { Quiz, Endless }
