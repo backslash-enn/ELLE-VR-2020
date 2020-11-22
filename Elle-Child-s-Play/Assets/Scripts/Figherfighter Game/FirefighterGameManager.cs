@@ -38,7 +38,7 @@ public class FirefighterGameManager : MonoBehaviour
     public AnimationCurve truckMoov;
     public float t = 0;
 
-    public GameObject hoseAndWater, nozzle;
+    public GameObject hoseAndWater, nozzle, remoteLeft, remoteRight;
     public Transform domHand, nondomHand, leftHand, rightHand;
 
     public GameObject littlePoof;
@@ -142,6 +142,8 @@ public class FirefighterGameManager : MonoBehaviour
 
         hoseAndWater.SetActive(true);
         nozzle.SetActive(true);
+        remoteLeft.SetActive(false);
+        remoteRight.SetActive(false);
         domHand.parent = rightHand;
         nondomHand.parent = leftHand;
         domHand.localPosition = domHand.localEulerAngles = Vector3.zero;
@@ -241,6 +243,7 @@ public class FirefighterGameManager : MonoBehaviour
             if (i < 3)
             {
                 ledSign.text += termsBag[chosenTermIndices[i]].back + "\n";
+                print($"chosen Len: {chosenTermIndices.Length}, chosen ind: {i} | bag length: {termsBag.Count}, term i: {chosenTermIndices[i]}");
                 correctTerms.Add(termsBag[chosenTermIndices[i]].back);
             }
             balconies[chosenBalconies[i]].Activate(termsBag[chosenTermIndices[i]]);
@@ -332,6 +335,8 @@ public class FirefighterGameManager : MonoBehaviour
 
         hoseAndWater.SetActive(false);
         nozzle.SetActive(false);
+        remoteLeft.SetActive(true);
+        remoteRight.SetActive(true);
 
         //aud.clip = switchModeSound;
         //aud.Play();
