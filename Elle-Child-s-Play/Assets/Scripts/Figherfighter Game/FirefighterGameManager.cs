@@ -1,18 +1,10 @@
 ﻿using Obi;
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 public class FirefighterGameManager : MonoBehaviour
 {
-    private List<Module> moduleList;
-    public Transform moduleListUIParent;
-    public GameObject moduleUIElement;
-    public Color[] moduleElementColors;
-
     public Transform pointerController;
     public Transform hosePointer;
 
@@ -25,6 +17,21 @@ public class FirefighterGameManager : MonoBehaviour
     private AudioSource aud;
 
     public Fader blackFader;
+
+    public GameMenu menu;
+
+    private bool movingTruck;
+    public Transform truck;
+    public Transform[] truckTires;
+    private AudioSource truckAud;
+    public AnimationCurve truckMoov;
+    public float t = 0;
+
+    public GameObject hoseAndWater, nozzle;
+    public Transform domHand, nondomHand, leftHand, rightHand;
+
+    public GameObject littlePoof;
+    public AudioClip poofSound;
 
     public string[] words =
     {
@@ -41,27 +48,22 @@ public class FirefighterGameManager : MonoBehaviour
         blackFader.Fade(false, .5f);
 
         aud = GetComponent<AudioSource>();
+        truckAud = truck.GetComponent<AudioSource>();
 
-        // Start in the main menu, where you choose a module
-        moduleList = ELLEAPI.GetModuleList();
-        for (int i = 0; i < moduleList.Count; i++)
-        {
-            GameObject g = Instantiate(moduleUIElement, moduleListUIParent);
-            g.transform.GetChild(0).GetComponent<TMP_Text>().text = moduleList[i].name;
-            g.transform.GetChild(1).GetComponent<TMP_Text>().text = "LEVEL: " + moduleList[i].complexity;
-            g.transform.GetChild(2).GetChild(0).GetComponent<TMP_Text>().text = moduleList[i].language.ToUpper();
-
-            var b = g.GetComponent<Button>().colors;
-            b.normalColor = moduleElementColors[i % 5];
-            g.GetComponent<Button>().colors = b;
-
-            if (i == 0) EventSystem.current.SetSelectedGameObject(g);
-        }
+        menu.onStartGame = MoveTruck;
     }
 
     void Update()
     {
         hosePointer.gameObject.SetActive(false);
+
+        if(movingTruck)
+        {
+            truck.position += -Vector3.right * truckMoov.Evaluate(t*.4f) * 12 * Time.deltaTime;
+            t += Time.deltaTime;
+            foreach (Transform tire in truckTires)
+                tire.Rotate(Vector3.right * 4000 * Time.deltaTime * truckMoov.Evaluate(t * .4f), Space.Self);
+        }
 
         if (Physics.Raycast(pointerController.position, pointerController.forward, out RaycastHit hit))
         {
@@ -75,6 +77,39 @@ public class FirefighterGameManager : MonoBehaviour
         }
 
         oe.speed = Mathf.Lerp(0, 15, VRInput.rightTrigger);
+        print($"trig: {VRInput.rightTrigger} | speed: {oe.speed}");
+    }
+
+    public void MoveTruck()
+    {
+        menu.inGame = true;
+        PauseMenu.canPause = true;
+        menu.DisableStartMenu();
+        StartCoroutine(StartSequence());
+    }
+
+    private IEnumerator StartSequence()
+    {
+        truckAud.Play();
+        movingTruck = true;
+
+        yield return new WaitForSeconds(2.5f);
+
+        movingTruck = false;
+
+        yield return new WaitForSeconds(1.5f);
+
+        hoseAndWater.SetActive(true);
+        nozzle.SetActive(true);
+        domHand.parent = rightHand;
+        nondomHand.parent = leftHand;
+        domHand.localPosition = domHand.localEulerAngles = Vector3.zero;
+        nondomHand.localPosition = nondomHand.localEulerAngles = Vector3.zero;
+
+        Instantiate(littlePoof, rightHand.transform.position, Quaternion.identity);
+        Instantiate(littlePoof, leftHand.transform.position, Quaternion.identity);
+        aud.clip = poofSound;
+        aud.Play();
     }
 
     private void StartIndividualsCatergory()

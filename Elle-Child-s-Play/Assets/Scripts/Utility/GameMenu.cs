@@ -48,7 +48,7 @@ public class GameMenu : MonoBehaviour
     [HideInInspector]
     public bool finishedGame = false;
     [HideInInspector]
-    public bool goodToLeave = true;
+    public bool goodToLeave;
 
     public delegate void BeginMethod();
     public BeginMethod onStartGame;
@@ -61,6 +61,8 @@ public class GameMenu : MonoBehaviour
         chooseTermsMenuCG = chooseTermsMenu.GetComponent<CanvasGroup>();
         openCTMVector = new Vector3(0, chooseTermsMenu.transform.localPosition.y, chooseTermsMenu.transform.localPosition.z);
         closeCTMVector = new Vector3(-1, chooseTermsMenu.transform.localPosition.y, chooseTermsMenu.transform.localPosition.z);
+
+        goodToLeave = true;
 
         if (useVideoForBackground)
         {
@@ -342,7 +344,15 @@ public class GameMenu : MonoBehaviour
         for (int i = 0; i < moduleListUIParent.childCount; i++)
             moduleListUIParent.GetChild(i).GetComponent<MenuModule>().enabled = false;
 
-        onStartGame();
+        try
+        {
+            onStartGame();
+        }
+        catch
+        {
+            Debug.LogError("There is no callback for the menu. Assign a function to the " +
+                "onStartGame delegate to kick off the game!");
+        }
     }
 }
 
