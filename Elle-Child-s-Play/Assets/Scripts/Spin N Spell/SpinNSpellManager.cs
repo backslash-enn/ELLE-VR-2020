@@ -12,8 +12,6 @@ public class SpinNSpellManager : MonoBehaviour
 
 
     private bool dontLeaveTooEarlyFlag;
-    private int sessionID;
-    private GameMode currentGameMode = GameMode.Quiz;
 
     private bool raiseProjectorScreen, lowerProjectorScreen;
     public Transform projectorScreen;
@@ -26,6 +24,8 @@ public class SpinNSpellManager : MonoBehaviour
     public Transform cubbyBasePosition;
     public GameObject cubbyBottom;
 
+    private int sessionID;
+    private GameMode currentGameMode = GameMode.Quiz;
     private List<Term> termList;
     private List<Term> termsBag;
 
@@ -385,7 +385,7 @@ public class SpinNSpellManager : MonoBehaviour
         aud.clip = switchModeSound;
         aud.Play();
 
-        menu.EnableEndMenu(score, attempts);
+        menu.FadeOutMusic();
         ELLEAPI.EndSession(sessionID, score);
 
         yield return new WaitForSeconds(2);
@@ -394,7 +394,7 @@ public class SpinNSpellManager : MonoBehaviour
         dontLeaveTooEarlyFlag = false;
         t = 1;
         projectorAud.Play();
-        menu.FadeOutMusic();
+        menu.EnableEndMenu(score, attempts);
 
         if (blocksParent.GetComponent<BlockCountManager>().frozenBlocks)
             blocksParent.GetComponent<BlockCountManager>().ToggleFrozenBlocks();

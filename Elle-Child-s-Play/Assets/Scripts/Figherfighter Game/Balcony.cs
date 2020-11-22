@@ -4,15 +4,18 @@ using UnityEngine;
 
 public class Balcony : MonoBehaviour
 {
+    public FirefighterGameManager manager;
     private float life = 1.5f;
     public ParticleSystem fire, embers, smoke;
     public Light l;
+    private Term currentTerm;
     public TMP_Text t;
 
-    public void Activate(string word)
+    public void Activate(Term term)
     {
         t.transform.parent.gameObject.SetActive(true);
-        t.text = word;
+        currentTerm = term;
+        t.text = currentTerm.front;
         life = 2;
 
         fire.Play();
@@ -36,18 +39,21 @@ public class Balcony : MonoBehaviour
         e.rateOverTime = Mathf.Lerp(0, 3, lerpThing);
     }
 
-    private void Deactivate()
+    public void Deactivate(bool putOut)
     {
         t.transform.parent.gameObject.SetActive(false);
         fire.Stop();
         embers.Stop();
         smoke.Stop();
         l.gameObject.SetActive(false);
+        life = 2;
+
+        if (putOut) manager.CheckIfCorrect(currentTerm.back);
     }
 
     public void LowerLife()
     {
         life -= Time.deltaTime;
-        if (life <= 0) Deactivate();
+        if (life <= 0) Deactivate(true);
     }
 }
