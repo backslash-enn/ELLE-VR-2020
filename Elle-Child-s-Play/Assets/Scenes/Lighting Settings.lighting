@@ -13,12 +13,12 @@ LightingSettings:
   m_EnableRealtimeLightmaps: 0
   m_RealtimeEnvironmentLighting: 1
   m_BounceScale: 1
-  m_AlbedoBoost: 1.66
+  m_AlbedoBoost: 1.13
   m_IndirectOutputScale: 2.16
   m_UsingShadowmask: 0
-  m_BakeBackend: 2
-  m_LightmapMaxSize: 1024
-  m_BakeResolution: 50
+  m_BakeBackend: 1
+  m_LightmapMaxSize: 2048
+  m_BakeResolution: 60
   m_Padding: 2
   m_TextureCompression: 1
   m_AO: 1
