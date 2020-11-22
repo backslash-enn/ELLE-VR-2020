@@ -12,8 +12,10 @@ public class GameMenu : MonoBehaviour
     public Texture backgroundImage;
     public bool useVideoForBackground;
     public GameObject background;
+    public AudioClip preGameMusic, inGameMusic, postGameMusic;
 
     private AudioSource aud;
+    public AudioSource musicAud;
     private CanvasGroup chooseTermsMenuCG;
     public GameObject chooseTermsMenu, ctmStartButtom;
 
@@ -55,6 +57,8 @@ public class GameMenu : MonoBehaviour
 
     public GameObject startMenu, endMenu;
 
+    private bool fadingOutMusic;
+
     void Start()
     {
         aud = GetComponent<AudioSource>();
@@ -74,6 +78,10 @@ public class GameMenu : MonoBehaviour
         {
             background.GetComponent<Renderer>().material.mainTexture = backgroundImage;
         }
+
+        musicAud.clip = preGameMusic;
+        musicAud.volume = 1;
+        musicAud.Play();
 
         // Start in the main menu, where you choose a module
         moduleList = ELLEAPI.GetModuleList();
@@ -217,6 +225,13 @@ public class GameMenu : MonoBehaviour
                 chooseTermsMenu.SetActive(false);
             }
         }
+
+        if(fadingOutMusic)
+        {
+            musicAud.volume -= 0.3f * Time.deltaTime;
+            if (musicAud.volume <= 0)
+                fadingOutMusic = false;
+        }
     }
 
     private (float, float) ValidScrollRange(Transform currentActive, int totalElementCount, int visibleCount)
@@ -331,6 +346,26 @@ public class GameMenu : MonoBehaviour
         endMenu.SetActive(true);
         scoreFractionText.text = points + "/" + attempts;
         scorePercentageText.text = termList.Count == 0 ? "-%" : Mathf.RoundToInt(100 * points / (float)attempts) + "%";
+    }
+
+    public void StartInGameMusic()
+    {
+        fadingOutMusic = false;
+        musicAud.clip = inGameMusic;
+        musicAud.volume = 1;
+        musicAud.Play();
+    }
+
+    public void StartPostGameMusic()
+    {
+        fadingOutMusic = false;
+        musicAud.clip = postGameMusic;
+        musicAud.volume = 1;
+        musicAud.Play();
+    }
+    public void FadeOutMusic()
+    {
+        fadingOutMusic = true;
     }
 
     public void StartGame()

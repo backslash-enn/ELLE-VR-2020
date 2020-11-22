@@ -6,11 +6,10 @@ using UnityEngine;
 public class SpinNSpellManager : MonoBehaviour
 {
     private AudioSource aud;
-    public AudioSource projectorAud, musicAud;
+    public AudioSource projectorAud;
 
     public Transform[] leftyFlippers;
 
-    public AudioClip inGameMusic, endGameMusic, postGameMusic;
 
     private bool dontLeaveTooEarlyFlag;
     private int sessionID;
@@ -75,6 +74,7 @@ public class SpinNSpellManager : MonoBehaviour
         raiseProjectorScreen = true;
         t = 0;
         projectorAud.Play();
+        menu.FadeOutMusic();
         menu.inGame = true;
         PauseMenu.canPause = true;
     }
@@ -87,7 +87,6 @@ public class SpinNSpellManager : MonoBehaviour
         {
             t += 0.3f * Time.deltaTime;
             projectorScreen.position = new Vector3(projectorScreen.position.x, projectorMoveCurve.Evaluate(t), projectorScreen.position.z);
-            musicAud.volume -= 0.2f * Time.deltaTime;
             if (t >= 1)
             {
                 raiseProjectorScreen = false;
@@ -100,13 +99,10 @@ public class SpinNSpellManager : MonoBehaviour
         {
             t -= 0.3f * Time.deltaTime;
             projectorScreen.position = new Vector3(projectorScreen.position.x, projectorMoveCurve.Evaluate(t), projectorScreen.position.z);
-            musicAud.volume -= 0.2f * Time.deltaTime;
             if (t <= 0)
             {
                 lowerProjectorScreen = false;
-                musicAud.clip = postGameMusic;
-                musicAud.volume = 0.3f;
-                musicAud.Play();
+                menu.StartPostGameMusic();
             }
         }
     }
@@ -159,9 +155,7 @@ public class SpinNSpellManager : MonoBehaviour
         yield return new WaitForSeconds(1.5f);
 
         blocksParent.SetActive(true);
-        musicAud.clip = inGameMusic;
-        musicAud.volume = 0.3f;
-        musicAud.Play();
+        menu.StartInGameMusic();
         for (int i = 0; i < 6; i++)
         {
             if (i >= termsBag.Count) break;
@@ -400,6 +394,7 @@ public class SpinNSpellManager : MonoBehaviour
         dontLeaveTooEarlyFlag = false;
         t = 1;
         projectorAud.Play();
+        menu.FadeOutMusic();
 
         if (blocksParent.GetComponent<BlockCountManager>().frozenBlocks)
             blocksParent.GetComponent<BlockCountManager>().ToggleFrozenBlocks();
