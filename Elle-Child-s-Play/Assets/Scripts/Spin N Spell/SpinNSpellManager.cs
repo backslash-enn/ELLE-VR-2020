@@ -40,7 +40,7 @@ public class SpinNSpellManager : MonoBehaviour
     private int attempts = 0;
     private int score = 0;
 
-    public AudioClip correctSound, menuMoveSound, switchModeSound, poofSound;
+    public AudioClip correctSound, switchModeSound, poofSound;
 
     private WaitForSeconds w;
 
