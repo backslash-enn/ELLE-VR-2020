@@ -94,7 +94,7 @@ public class GameMenu : MonoBehaviour
             g.GetComponent<MenuModule>().menu = this;
 
             var b = g.GetComponent<Button>().colors;
-            b.normalColor = moduleElementColors[i % 5];
+            b.normalColor = moduleElementColors[i % moduleElementColors.Length];
             g.GetComponent<Button>().colors = b;
 
             if (i == 0) EventSystem.current.SetSelectedGameObject(g);

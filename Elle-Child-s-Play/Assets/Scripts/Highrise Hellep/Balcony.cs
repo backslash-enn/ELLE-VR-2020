@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Balcony : MonoBehaviour
 {
-    public FirefighterGameManager manager;
+    public HighriseHellepeManager manager;
     private float life = 1.5f;
     public ParticleSystem fire, embers, smoke;
     public Light l;

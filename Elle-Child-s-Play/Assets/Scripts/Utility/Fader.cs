@@ -15,20 +15,20 @@ public class Fader : MonoBehaviour
     {
         if (fadingIn)
         {
-            cg.alpha += fadeSpeed * Time.deltaTime;
+            cg.alpha += fadeSpeed;
             if (cg.alpha >= 1)
                 fadingIn = false;
         }
 
         if (fadingOut)
         {
-            cg.alpha -= fadeSpeed * Time.deltaTime;
+            cg.alpha -= fadeSpeed;
             if (cg.alpha <= 0)
                 fadingOut = false;
         }
     }
 
-    public void Fade(bool fadeIn = true, float speed = 1, bool instant = false)
+    public void Fade(bool fadeIn = true, float speed = 0.15f, bool instant = false)
     {
         if(instant)
         {
