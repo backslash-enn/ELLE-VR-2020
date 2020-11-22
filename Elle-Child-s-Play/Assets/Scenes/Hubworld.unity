@@ -35,10 +35,10 @@ RenderSettings:
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 0.561
+  m_ReflectionIntensity: 0.32
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1439772515}
-  m_IndirectSpecularColor: {r: 0.0013091789, g: 0.0045185126, b: 0.0036291857, a: 0.561}
+  m_IndirectSpecularColor: {r: 0.0007467687, g: 0.0025774047, b: 0.0020701238, a: 0.32}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1495,6 +1495,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: fire
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 083cb01b2ef8cb349ad865103e1af40b,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 083cb01b2ef8cb349ad865103e1af40b, type: 3}
 --- !u!1 &404760404
@@ -2410,7 +2415,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 000ee48d3b4f5944184aff4abfea2696,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.204
+      value: 0.394
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 000ee48d3b4f5944184aff4abfea2696,
         type: 3}
@@ -2481,6 +2486,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: buildingcardboard (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 000ee48d3b4f5944184aff4abfea2696,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 000ee48d3b4f5944184aff4abfea2696, type: 3}
@@ -3220,7 +3230,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 90b296c4f7f203945a17205b9775ba84,
         type: 3}
       propertyPath: m_RootOrder
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 90b296c4f7f203945a17205b9775ba84,
         type: 3}
@@ -3295,7 +3305,7 @@ PrefabInstance:
     - target: {fileID: 5958438921693756439, guid: 90b296c4f7f203945a17205b9775ba84,
         type: 3}
       propertyPath: m_ShadowRadius
-      value: 10
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8934777400606672865, guid: 90b296c4f7f203945a17205b9775ba84,
         type: 3}
@@ -3492,6 +3502,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: fire (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 083cb01b2ef8cb349ad865103e1af40b,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 083cb01b2ef8cb349ad865103e1af40b, type: 3}
 --- !u!1 &1278168442
@@ -3634,7 +3649,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 000ee48d3b4f5944184aff4abfea2696,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.204
+      value: 0.388
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 000ee48d3b4f5944184aff4abfea2696,
         type: 3}
@@ -3705,6 +3720,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: buildingcardboard
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 000ee48d3b4f5944184aff4abfea2696,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 000ee48d3b4f5944184aff4abfea2696, type: 3}
@@ -4384,7 +4404,7 @@ PrefabInstance:
     - target: {fileID: 5958438921693756439, guid: 6ac15fd09bf72d84cb4e504924142f71,
         type: 3}
       propertyPath: m_Lightmapping
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 5958438921693756439, guid: 6ac15fd09bf72d84cb4e504924142f71,
         type: 3}
@@ -4399,7 +4419,17 @@ PrefabInstance:
     - target: {fileID: 5958438921693756439, guid: 6ac15fd09bf72d84cb4e504924142f71,
         type: 3}
       propertyPath: m_ShadowRadius
-      value: 10
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5958438921693756439, guid: 6ac15fd09bf72d84cb4e504924142f71,
+        type: 3}
+      propertyPath: m_Type
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7800219917424603212, guid: 6ac15fd09bf72d84cb4e504924142f71,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 5.09
       objectReference: {fileID: 0}
     - target: {fileID: 8934777400606672865, guid: 6ac15fd09bf72d84cb4e504924142f71,
         type: 3}
@@ -5110,12 +5140,12 @@ PrefabInstance:
     - target: {fileID: 5958438921693756439, guid: ae202a0e547a5ec4f87828184f937f1b,
         type: 3}
       propertyPath: m_BounceIntensity
-      value: 19
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 5958438921693756439, guid: ae202a0e547a5ec4f87828184f937f1b,
         type: 3}
       propertyPath: m_ShadowRadius
-      value: 10
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8934777400606672865, guid: ae202a0e547a5ec4f87828184f937f1b,
         type: 3}
@@ -32800,7 +32830,7 @@ MeshRenderer:
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
+  m_LightmapParameters: {fileID: 15200, guid: 0000000000000000f000000000000000, type: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
@@ -34545,7 +34575,7 @@ MeshRenderer:
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
+  m_LightmapParameters: {fileID: 15200, guid: 0000000000000000f000000000000000, type: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
@@ -35948,7 +35978,7 @@ MeshRenderer:
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
+  m_LightmapParameters: {fileID: 15200, guid: 0000000000000000f000000000000000, type: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
