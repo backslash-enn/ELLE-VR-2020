@@ -6,11 +6,11 @@ using UnityEngine;
 public class MenuTerm : MonoBehaviour
 {
     private int termIndex = -2;
-    private SpinNSpellManager manager;
+    private GameMenu menu;
 
-    public void InitializeStuff(string termName, SpinNSpellManager m, int i)
+    public void InitializeStuff(string termName, GameMenu m, int i)
     {
-        manager = m;
+        menu = m;
         transform.GetChild(0).GetComponent<TMP_Text>().text = termName;
         termIndex = i;
     }
@@ -18,6 +18,6 @@ public class MenuTerm : MonoBehaviour
     public void ToggleTerm()
     {
         print($"I, {gameObject.name}, index {termIndex}, am now toggling");
-        manager.ToggleTerm(termIndex);
+        menu.ToggleTerm(termIndex);
     }
 }

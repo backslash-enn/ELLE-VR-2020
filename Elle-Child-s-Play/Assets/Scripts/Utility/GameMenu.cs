@@ -1,15 +1,19 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.Video;
 
 public class GameMenu : MonoBehaviour
 {
+    public VideoClip backgroundVideo;
+    public Texture backgroundImage;
+    public bool useVideoForBackground;
+    public GameObject background;
+
     private AudioSource aud;
-    private Vector3 ctmPosition;
     private CanvasGroup chooseTermsMenuCG;
     public GameObject chooseTermsMenu, ctmStartButtom;
 
@@ -21,15 +25,24 @@ public class GameMenu : MonoBehaviour
     public GameObject moduleUIElement;
     public Color[] moduleElementColors;
     public Button checkTermsButton, uncheckTermsButton, startButton;
+    public TMP_Text scoreFractionText, scorePercentageText;
 
-    private bool ctmIsOpen, openingCTM, closingCTM;
     private List<Module> moduleList;
-    private Module currentModule;
-    private List<Term> termList;
+    private bool ctmIsOpen, openingCTM, closingCTM;
+    public Transform termListUIParent;
+    public GameObject termUIElement;
+    private Vector3 openCTMVector, closeCTMVector;
 
-    private GameMode currentGameMode = GameMode.Quiz;
     public ScrollRect modulesSR, termsSR;
 
+    [HideInInspector]
+    public GameMode currentGameMode = GameMode.Quiz;
+    [HideInInspector]
+    public List<Term> termList;
+    [HideInInspector]
+    public bool[] termEnabled;
+    [HideInInspector]
+    public Module currentModule;
     [HideInInspector]
     public bool inGame = false;
     [HideInInspector]
@@ -37,10 +50,28 @@ public class GameMenu : MonoBehaviour
     [HideInInspector]
     public bool goodToLeave = true;
 
+    public delegate void BeginMethod();
+    public BeginMethod onStartGame;
+
+    public GameObject startMenu, endMenu;
+
     void Start()
     {
+        aud = GetComponent<AudioSource>();
         chooseTermsMenuCG = chooseTermsMenu.GetComponent<CanvasGroup>();
-        ctmPosition = new Vector3(0.14f, 1f, 1.6f);
+        openCTMVector = new Vector3(0, chooseTermsMenu.transform.localPosition.y, chooseTermsMenu.transform.localPosition.z);
+        closeCTMVector = new Vector3(-1, chooseTermsMenu.transform.localPosition.y, chooseTermsMenu.transform.localPosition.z);
+
+        if (useVideoForBackground)
+        {
+            var vp = background.GetComponent<VideoPlayer>();
+            vp.clip = backgroundVideo;
+            vp.enabled = true;
+        }
+        else
+        {
+            background.GetComponent<Renderer>().material.mainTexture = backgroundImage;
+        }
 
         // Start in the main menu, where you choose a module
         moduleList = ELLEAPI.GetModuleList();
@@ -50,6 +81,7 @@ public class GameMenu : MonoBehaviour
             g.transform.GetChild(0).GetComponent<TMP_Text>().text = moduleList[i].name;
             g.transform.GetChild(1).GetComponent<TMP_Text>().text = "LEVEL: " + moduleList[i].complexity;
             g.transform.GetChild(2).GetChild(0).GetComponent<TMP_Text>().text = moduleList[i].language.ToUpper();
+            g.GetComponent<MenuModule>().menu = this;
 
             var b = g.GetComponent<Button>().colors;
             b.normalColor = moduleElementColors[i % 5];
@@ -162,11 +194,11 @@ public class GameMenu : MonoBehaviour
         if (openingCTM)
         {
             chooseTermsMenuCG.alpha = Mathf.Lerp(chooseTermsMenuCG.alpha, 1, 7 * Time.deltaTime);
-            chooseTermsMenu.transform.position = Vector3.Lerp(chooseTermsMenu.transform.position, ctmPosition, 7 * Time.deltaTime);
+            chooseTermsMenu.transform.localPosition = Vector3.Lerp(chooseTermsMenu.transform.localPosition, openCTMVector, 7 * Time.deltaTime);
             if (chooseTermsMenuCG.alpha > 0.999f)
             {
                 chooseTermsMenuCG.alpha = 1;
-                chooseTermsMenu.transform.position = ctmPosition;
+                chooseTermsMenu.transform.localPosition = openCTMVector;
                 openingCTM = false;
             }
         }
@@ -174,11 +206,11 @@ public class GameMenu : MonoBehaviour
         if (closingCTM)
         {
             chooseTermsMenuCG.alpha = Mathf.Lerp(chooseTermsMenuCG.alpha, 0, 7 * Time.deltaTime);
-            chooseTermsMenu.transform.position = Vector3.Lerp(chooseTermsMenu.transform.position, ctmPosition + Vector3.left, 7 * Time.deltaTime);
+            chooseTermsMenu.transform.localPosition = Vector3.Lerp(chooseTermsMenu.transform.localPosition, closeCTMVector, 7 * Time.deltaTime);
             if (chooseTermsMenuCG.alpha < 0.001f)
             {
                 chooseTermsMenuCG.alpha = 0;
-                chooseTermsMenu.transform.position = ctmPosition + Vector3.left;
+                chooseTermsMenu.transform.localPosition = closeCTMVector;
                 closingCTM = false;
                 chooseTermsMenu.SetActive(false);
             }
@@ -200,6 +232,117 @@ public class GameMenu : MonoBehaviour
         minScroll = maxScroll - stepSize * (visibleCount - 1);
 
         return (minScroll, maxScroll);
+    }
+
+    public void PickModule(int moduleIndex)
+    {
+        currentModule = moduleList[moduleIndex];
+        termList = ELLEAPI.GetTermsFromModule(currentModule.moduleID);
+
+        if (currentGameMode == GameMode.Quiz)
+            StartGame();
+        else
+            EndlessMenu();
+    }
+
+    public void EndlessMenu()
+    {
+        int i;
+
+        termEnabled = new bool[termList.Count];
+        for (i = 0; i < termList.Count; i++)
+            termEnabled[i] = true;
+
+        for (i = termListUIParent.childCount - 1; i >= 0; i--)
+            Destroy(termListUIParent.GetChild(i).gameObject);
+
+        Toggle firstToggle = null;
+        for (i = 0; i < termList.Count; i++)
+        {
+            MenuTerm term = Instantiate(termUIElement, termListUIParent).GetComponent<MenuTerm>();
+            term.InitializeStuff(termList[i].back, this, i);
+            if (i == 0) firstToggle = term.transform.GetComponent<Toggle>();
+        }
+
+        if (firstToggle != null)
+        {
+            Navigation n;
+
+            n = new Navigation
+            {
+                mode = Navigation.Mode.Explicit,
+                selectOnRight = uncheckTermsButton,
+                selectOnDown = firstToggle
+            };
+            checkTermsButton.navigation = n;
+
+            n = new Navigation
+            {
+                mode = Navigation.Mode.Explicit,
+                selectOnLeft = checkTermsButton,
+                selectOnRight = startButton,
+                selectOnDown = firstToggle
+            };
+            uncheckTermsButton.navigation = n;
+
+            n = new Navigation
+            {
+                mode = Navigation.Mode.Explicit,
+                selectOnLeft = uncheckTermsButton,
+                selectOnDown = firstToggle
+            };
+            startButton.navigation = n;
+        }
+
+        chooseTermsMenu.SetActive(true);
+        openingCTM = true;
+        closingCTM = false;
+        ctmIsOpen = true;
+
+        for (i = 0; i < moduleListUIParent.childCount; i++)
+        {
+            moduleListUIParent.GetChild(i).GetComponent<MenuModule>().enabled = false;
+            moduleListUIParent.GetChild(i).GetComponent<Button>().enabled = false;
+        }
+    }
+
+    public void SetAllTerms(bool enabled)
+    {
+        for (int i = 0; i < termEnabled.Length; i++)
+        {
+            Toggle t = termListUIParent.GetChild(i).GetComponent<Toggle>();
+            t.isOn = enabled;
+        }
+    }
+
+    public void ToggleTerm(int termIndex)
+    {
+        termEnabled[termIndex] = !termEnabled[termIndex];
+    }
+
+    public void DisableStartMenu() 
+    { 
+        startMenu.SetActive(false); 
+    }
+    public void EnableEndMenu(int points, int attempts)
+    { 
+        endMenu.SetActive(true);
+        scoreFractionText.text = points + "/" + attempts;
+        scorePercentageText.text = termList.Count == 0 ? "-%" : Mathf.RoundToInt(100 * points / (float)attempts) + "%";
+    }
+
+    public void StartGame()
+    {
+        if (inGame) return;
+
+        closingCTM = true;
+        openingCTM = false;
+        ctmIsOpen = false;
+
+        for (int i = 0; i < moduleListUIParent.childCount; i++)
+            moduleListUIParent.GetChild(i).GetComponent<MenuModule>().enabled = false;
+
+        onStartGame();
     }
 }
 

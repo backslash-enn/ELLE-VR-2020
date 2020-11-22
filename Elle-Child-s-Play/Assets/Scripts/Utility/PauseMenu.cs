@@ -4,11 +4,15 @@ using UnityEngine.SceneManagement;
 
 public class PauseMenu : MonoBehaviour
 {
-    public EventSystem e;
-    public GameObject menu, resumeButton;
+    private GameObject menu, resumeButton;
     public Fader fader;
     public static bool paused, canPause;
 
+    void Start()
+    {
+        menu = transform.GetChild(0).gameObject;
+        resumeButton = menu.transform.GetChild(1).gameObject;
+    }
     void Update()
     {
         if (VRInput.startButtonDown)
@@ -17,8 +21,8 @@ public class PauseMenu : MonoBehaviour
             else Resume();
         }
 
-        if (paused && e.currentSelectedGameObject == null)
-            e.SetSelectedGameObject(resumeButton);
+        if (paused && EventSystem.current.currentSelectedGameObject == null)
+            EventSystem.current.SetSelectedGameObject(resumeButton);
     }
 
     public void Pause()
@@ -40,12 +44,14 @@ public class PauseMenu : MonoBehaviour
     public void Restart ()
     {
         Time.timeScale = 1;
+        paused = false;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     public void Quit()
     {
         Time.timeScale = 1;
+        paused = false;
         SceneManager.LoadScene("Hubworld");
     }
 }

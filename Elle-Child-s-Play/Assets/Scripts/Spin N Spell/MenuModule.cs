@@ -5,7 +5,10 @@ public class MenuModule : MonoBehaviour, ISelectHandler
 {
     [HideInInspector]
     public int moduleIndex = -1;
+    [HideInInspector]
+    public GameMenu menu;
     public AudioSource aud;
+    
 
     private static bool started = false;
 
@@ -29,7 +32,7 @@ public class MenuModule : MonoBehaviour, ISelectHandler
 
     public void StartModule()
     {
-        GameObject.Find("Manager").GetComponent<SpinNSpellManager>().PickModule(moduleIndex);
+        menu.PickModule(moduleIndex);
     }
 
     public void OnSelect(BaseEventData eventData)

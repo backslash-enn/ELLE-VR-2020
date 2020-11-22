@@ -2,42 +2,24 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 public class SpinNSpellManager : MonoBehaviour
 {
     private AudioSource aud;
     public AudioSource projectorAud, musicAud;
-    public EventSystem e;
 
     public Transform[] leftyFlippers;
 
     public AudioClip inGameMusic, endGameMusic, postGameMusic;
 
-    private bool inGame = false;
-    private bool finishedGame = false;
     private bool dontLeaveTooEarlyFlag;
-    private List<Module> moduleList;
-    private Module currentModule;
     private int sessionID;
     private GameMode currentGameMode = GameMode.Quiz;
-
-    public GameObject introCanvas, finishCanvas;
-    public TMP_Text scoreFractionText, scorePercentageText;
-    public Transform moduleListUIParent;
-    public GameObject moduleUIElement;
-    public Color[] moduleElementColors = new Color[1];
 
     private bool raiseProjectorScreen, lowerProjectorScreen;
     public Transform projectorScreen;
     public float t;
     public AnimationCurve projectorMoveCurve;
-
-    public TMP_Text gameModeText;
-    public Image gameModeCover, gameModeUncover;
-    private bool gameModeCoverLockedOut;
 
     public SpinNSpellHand leftHand, rightHand;
     public GameObject blocksParent;
@@ -47,7 +29,6 @@ public class SpinNSpellManager : MonoBehaviour
 
     private List<Term> termList;
     private List<Term> termsBag;
-    private bool[] termEnabled;
 
     public GameObject cubbyRowPrefab;
     public List<CubbyRow> cubbyRows;
@@ -56,20 +37,10 @@ public class SpinNSpellManager : MonoBehaviour
 
     public Transform[] frames;
 
-    public ScrollRect modulesSR, termsSR;
-    public Button checkTermsButton, uncheckTermsButton, startButton;
-
     private int attempts = 0;
     private int score = 0;
 
     public AudioClip correctSound, menuMoveSound, switchModeSound, poofSound;
-
-    public GameObject chooseTermsMenu, ctmStartButtom;
-    private CanvasGroup chooseTermsMenuCG;
-    private bool ctmIsOpen, openingCTM, closingCTM;
-    private Vector3 ctmPosition;
-    public Transform termListUIParent;
-    public GameObject termUIElement;
 
     private WaitForSeconds w;
 
@@ -77,7 +48,7 @@ public class SpinNSpellManager : MonoBehaviour
 
     public GameMenu menu;
 
-    void Start()
+    private void Awake()
     {
         if (ELLEAPI.rightHanded == false)
         {
@@ -85,264 +56,32 @@ public class SpinNSpellManager : MonoBehaviour
                 leftyFlippers[i].eulerAngles = new Vector3(0, 180, 0);
         }
 
+        
         blackFader.Fade(false, .5f);
 
+        menu.onStartGame = RaiseProjector;
+    }
+
+    void Start()
+    {
         aud = GetComponent<AudioSource>();
         termsBag = new List<Term>();
-        chooseTermsMenuCG = chooseTermsMenu.GetComponent<CanvasGroup>();
-        ctmPosition = new Vector3(0.14f, 1f, 1.6f);
-
-        // Start in the main menu, where you choose a module
-        moduleList = ELLEAPI.GetModuleList();
-        for (int i = 0; i < moduleList.Count; i++)
-        {
-            GameObject g = Instantiate(moduleUIElement, moduleListUIParent);
-            g.transform.GetChild(0).GetComponent<TMP_Text>().text = moduleList[i].name;
-            g.transform.GetChild(1).GetComponent<TMP_Text>().text = "LEVEL: " + moduleList[i].complexity;
-            g.transform.GetChild(2).GetChild(0).GetComponent<TMP_Text>().text = moduleList[i].language.ToUpper();
-
-            var b = g.GetComponent<Button>().colors;
-            b.normalColor = moduleElementColors[i % 5];
-            g.GetComponent<Button>().colors = b;
-
-            if (i == 0) e.SetSelectedGameObject(g);
-        }
 
         w = new WaitForSeconds(0.08f);
     }
 
-    public void PickModule(int moduleIndex)
-    {
-        currentModule = moduleList[moduleIndex];
-        termList = ELLEAPI.GetTermsFromModule(currentModule.moduleID);
-
-        if (currentGameMode == GameMode.Quiz)
-            RaiseProjector();
-        else
-            EndlessMenu();
-    }
-
     public void RaiseProjector()
     {
-        if (inGame) return;
-
         raiseProjectorScreen = true;
         t = 0;
         projectorAud.Play();
-        inGame = true;
+        menu.inGame = true;
         PauseMenu.canPause = true;
-
-        closingCTM = true;
-        openingCTM = false;
-        ctmIsOpen = false;
-
-        for (int i = 0; i < moduleListUIParent.childCount; i++)
-            moduleListUIParent.GetChild(i).GetComponent<MenuModule>().enabled = false;
-    }
-
-    public void EndlessMenu()
-    {
-        int i;
-
-        termEnabled = new bool[termList.Count];
-        for (i = 0; i < termList.Count; i++)
-            termEnabled[i] = true;
-
-        for (i = termListUIParent.childCount - 1; i >= 0; i--)
-            Destroy(termListUIParent.GetChild(i).gameObject);
-
-        Toggle firstToggle = null;
-        for (i = 0; i < termList.Count; i++)
-        {
-            MenuTerm term = Instantiate(termUIElement, termListUIParent).GetComponent<MenuTerm>();
-            term.InitializeStuff(termList[i].back, this, i);
-            if (i == 0) firstToggle = term.transform.GetComponent<Toggle>();
-        }
-
-        if (firstToggle != null)
-        {
-            Navigation n;
-
-            n = new Navigation
-            {
-                mode = Navigation.Mode.Explicit,
-                selectOnRight = uncheckTermsButton,
-                selectOnDown = firstToggle
-            };
-            checkTermsButton.navigation = n;
-
-            n = new Navigation
-            {
-                mode = Navigation.Mode.Explicit,
-                selectOnLeft = checkTermsButton,
-                selectOnRight = startButton,
-                selectOnDown = firstToggle
-            };
-            uncheckTermsButton.navigation = n;
-
-            n = new Navigation
-            {
-                mode = Navigation.Mode.Explicit,
-                selectOnLeft = uncheckTermsButton,
-                selectOnDown = firstToggle
-            };
-            startButton.navigation = n;
-        }
-
-        chooseTermsMenu.SetActive(true);
-        openingCTM = true;
-        closingCTM = false;
-        ctmIsOpen = true;
-
-        for (i = 0; i < moduleListUIParent.childCount; i++)
-        {
-            moduleListUIParent.GetChild(i).GetComponent<MenuModule>().enabled = false;
-            moduleListUIParent.GetChild(i).GetComponent<Button>().enabled = false;
-        }
-    }
-
-    public void SetAllTerms(bool enabled)
-    {
-        for (int i = 0; i < termEnabled.Length; i++)
-        {
-            Toggle t = termListUIParent.GetChild(i).GetComponent<Toggle>();
-            if (t.isOn != enabled)
-                t.isOn = enabled;
-        }
-    }
-
-    public void ToggleTerm(int termIndex)
-    {
-        termEnabled[termIndex] = !termEnabled[termIndex];
     }
 
     void Update()
     {
         menu.goodToLeave = !raiseProjectorScreen && !lowerProjectorScreen && !dontLeaveTooEarlyFlag;
-
-        if (!inGame && !ctmIsOpen && !raiseProjectorScreen && !lowerProjectorScreen && !dontLeaveTooEarlyFlag && (VRInput.bDown || VRInput.yDown))
-            SceneManager.LoadScene("Hubworld");
-
-        if (finishedGame && !raiseProjectorScreen && !lowerProjectorScreen && !dontLeaveTooEarlyFlag && (VRInput.aDown || VRInput.xDown))
-            SceneManager.LoadScene("SpinNSpell");
-
-        if (!inGame)
-        {
-            GameObject currentActive = e.currentSelectedGameObject;
-
-            // If somehow no option is highlighted in the menu, reset it to the first option
-            if (currentActive == null)
-            {
-                if (ctmIsOpen)
-                    e.SetSelectedGameObject(startButton.gameObject);
-                else if (moduleListUIParent.childCount > 0)
-                    e.SetSelectedGameObject(moduleListUIParent.GetChild(0).gameObject);
-            }
-            else if (ctmIsOpen)
-            {
-                if (e.currentSelectedGameObject.transform.parent == moduleListUIParent)
-                    e.SetSelectedGameObject(startButton.gameObject);
-
-                if (termList.Count > 4)
-                {
-                    // If the currentMenuOption isn't visible, fix that
-                    (float minScroll, float maxScroll) = ValidScrollRange(currentActive.transform, termList.Count, 4);
-                    float currentScroll = termsSR.verticalScrollbar.value;
-                    if (currentScroll < minScroll || currentScroll > maxScroll)
-                    {
-                        float targetScroll = (currentScroll < minScroll) ? minScroll : maxScroll;
-                        termsSR.verticalScrollbar.value = Mathf.Lerp(currentScroll, targetScroll, 10 * Time.deltaTime);
-                    }
-                }
-            }
-
-            // Else if is important. If not there it errors when fixing null
-            else if (moduleList?.Count > 5)
-            {
-                // If the currentMenuOption isn't visible, fix that
-                (float minScroll, float maxScroll) = ValidScrollRange(currentActive.transform, moduleList.Count, 5);
-                float currentScroll = modulesSR.verticalScrollbar.value;
-                if (currentScroll < minScroll || currentScroll > maxScroll)
-                {
-                    float targetScroll = (currentScroll < minScroll) ? minScroll : maxScroll;
-                    modulesSR.verticalScrollbar.value = Mathf.Lerp(currentScroll, targetScroll, 10 * Time.deltaTime);
-                }
-            }
-
-            if (gameModeUncover.fillAmount > 0)
-            {
-                gameModeUncover.fillAmount = Mathf.Lerp(gameModeUncover.fillAmount, 0, 5 * Time.deltaTime);
-                if (gameModeUncover.fillAmount < 0.01f)
-                    gameModeUncover.fillAmount = 0;
-            }
-
-            if (!finishedGame)
-            {
-                if (gameModeCoverLockedOut == false)
-                {
-                    gameModeCover.fillAmount = VRInput.rightTrigger + VRInput.leftTrigger;
-                    if (gameModeCover.fillAmount <= 0.05f)
-                        gameModeCover.fillAmount = 0;
-                    if (VRInput.rightTrigger + VRInput.leftTrigger > 0.95f)
-                    {
-                        currentGameMode = currentGameMode == GameMode.Quiz ? GameMode.Endless : GameMode.Quiz;
-                        gameModeText.text = currentGameMode == GameMode.Quiz ? "Quiz" : "Endless";
-                        gameModeCoverLockedOut = true;
-                        gameModeCover.fillAmount = 0;
-                        gameModeUncover.fillAmount = 1;
-
-                        aud.clip = switchModeSound;
-                        aud.Play();
-                    }
-                }
-                else if (VRInput.rightTrigger + VRInput.leftTrigger < 0.05f)
-                    gameModeCoverLockedOut = false;
-            }
-
-            if (VRInput.bDown || VRInput.yDown)
-            {
-                if (ctmIsOpen)
-                {
-                    closingCTM = true;
-                    openingCTM = false;
-                    ctmIsOpen = false;
-
-                    for (int i = 0; i < moduleListUIParent.childCount; i++)
-                    {
-                        moduleListUIParent.GetChild(i).GetComponent<MenuModule>().enabled = true;
-                        moduleListUIParent.GetChild(i).GetComponent<Button>().enabled = true;
-                    }
-
-                    if (moduleListUIParent.childCount > 0)
-                        e.SetSelectedGameObject(moduleListUIParent.GetChild(0).gameObject);
-                }
-            }
-        }
-
-        if (openingCTM)
-        {
-            chooseTermsMenuCG.alpha = Mathf.Lerp(chooseTermsMenuCG.alpha, 1, 7 * Time.deltaTime);
-            chooseTermsMenu.transform.position = Vector3.Lerp(chooseTermsMenu.transform.position, ctmPosition, 7 * Time.deltaTime);
-            if (chooseTermsMenuCG.alpha > 0.999f)
-            {
-                chooseTermsMenuCG.alpha = 1;
-                chooseTermsMenu.transform.position = ctmPosition;
-                openingCTM = false;
-            }
-        }
-
-        if (closingCTM)
-        {
-            chooseTermsMenuCG.alpha = Mathf.Lerp(chooseTermsMenuCG.alpha, 0, 7 * Time.deltaTime);
-            chooseTermsMenu.transform.position = Vector3.Lerp(chooseTermsMenu.transform.position, ctmPosition + Vector3.left, 7 * Time.deltaTime);
-            if (chooseTermsMenuCG.alpha < 0.001f)
-            {
-                chooseTermsMenuCG.alpha = 0;
-                chooseTermsMenu.transform.position = ctmPosition + Vector3.left;
-                closingCTM = false;
-                chooseTermsMenu.SetActive(false);
-            }
-        }
 
         if (raiseProjectorScreen)
         {
@@ -352,7 +91,7 @@ public class SpinNSpellManager : MonoBehaviour
             if (t >= 1)
             {
                 raiseProjectorScreen = false;
-                introCanvas.SetActive(false);
+                menu.DisableStartMenu();
                 StartCoroutine(GetItStarted());
             }
         }
@@ -372,32 +111,18 @@ public class SpinNSpellManager : MonoBehaviour
         }
     }
 
-    private (float, float) ValidScrollRange(Transform currentActive, int totalElementCount, int visibleCount)
-    {
-        float minScroll, maxScroll;
-        float stepSize = 1 / (float)(totalElementCount - visibleCount);
-        int moduleIndex = -1;
-        for (int i = 0; i < currentActive.parent.childCount; i++)
-        {
-            if (currentActive.parent.GetChild(i) == currentActive)
-                moduleIndex = i;
-        }
-
-        maxScroll = 1 - (moduleIndex + 1 - visibleCount) * stepSize;
-        minScroll = maxScroll - stepSize * (visibleCount - 1);
-
-        return (minScroll, maxScroll);
-    }
-
     private IEnumerator GetItStarted()
     {
-        sessionID = ELLEAPI.StartSession(currentModule.moduleID, currentGameMode == GameMode.Endless);
+        currentGameMode = menu.currentGameMode;
+        termList = menu.termList;
+
+        sessionID = ELLEAPI.StartSession(menu.currentModule.moduleID, currentGameMode == GameMode.Endless);
 
         if (currentGameMode == GameMode.Endless)
         {
             for (int i = termList.Count - 1; i >= 0; i--)
             {
-                if (termEnabled[i] == false)
+                if (menu.termEnabled[i] == false)
                     termList.RemoveAt(i);
             }
         }
@@ -410,7 +135,6 @@ public class SpinNSpellManager : MonoBehaviour
         rightHand.StartGame();
         aud.clip = poofSound;
         aud.Play();
-
 
         FillTermBag();
 
@@ -651,8 +375,8 @@ public class SpinNSpellManager : MonoBehaviour
     private IEnumerator FinishIt()
     {
         dontLeaveTooEarlyFlag = true;
-        inGame = false;
-        finishedGame = true;
+        menu.inGame = false;
+        menu.finishedGame = true;
         PauseMenu.canPause = false;
         Instantiate(littlePoof, leftHand.transform.position, Quaternion.identity);
         Instantiate(littlePoof, rightHand.transform.position, Quaternion.identity);
@@ -667,9 +391,7 @@ public class SpinNSpellManager : MonoBehaviour
         aud.clip = switchModeSound;
         aud.Play();
 
-        finishCanvas.SetActive(true);
-        scoreFractionText.text = score + "/" + termList.Count;
-        scorePercentageText.text = termList.Count == 0 ? "-%" : Mathf.RoundToInt(100 * score / (float)attempts) + "%";
+        menu.EnableEndMenu(score, attempts);
         ELLEAPI.EndSession(sessionID, score);
 
         yield return new WaitForSeconds(2);

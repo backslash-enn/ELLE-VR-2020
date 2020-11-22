@@ -4138,7 +4138,7 @@ Animator:
   m_GameObject: {fileID: 981580638675074003}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: a9edf97c83ae72245894e5d48bb19aad, type: 2}
+  m_Controller: {fileID: 9100000, guid: aaee764d84237b344b144475d53daee6, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -4405,7 +4405,7 @@ Animator:
   m_GameObject: {fileID: 981580637634121392}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: a9edf97c83ae72245894e5d48bb19aad, type: 2}
+  m_Controller: {fileID: 9100000, guid: aaee764d84237b344b144475d53daee6, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
