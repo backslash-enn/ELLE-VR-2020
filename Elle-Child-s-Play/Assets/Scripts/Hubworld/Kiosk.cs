@@ -1,12 +1,18 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 
 public class Kiosk : MonoBehaviour
 {
+    public string gameTitle, gameSceneName;
     public Transform text;
+    public TMP_Text titleText;
     private bool open;
     private float tranSpeed = 10;
 
-    public bool ff;
+    void Start()
+    {
+        titleText.text = gameTitle;
+    }
 
     void Update()
     {
@@ -18,19 +24,13 @@ public class Kiosk : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if(!ff)
-            other.transform.GetComponent<HubworldPlayer>().inSpinNSpell = true;
-        else
-            other.transform.GetComponent<HubworldPlayer>().inFF = true;
+        other.transform.GetComponent<HubworldPlayer>().chosenScene = gameSceneName;
         open = true;
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (!ff)
-            other.transform.GetComponent<HubworldPlayer>().inSpinNSpell = false;
-        else
-            other.transform.GetComponent<HubworldPlayer>().inFF = false;
+        other.transform.GetComponent<HubworldPlayer>().chosenScene = "";
         open = false;
     }
 }

@@ -1,7 +1,8 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -10,9 +11,10 @@ using UnityEngine.Networking;
 
 public class ELLEAPI : MonoBehaviour
 {
-    private static readonly string serverLocation = "http://54.158.210.144:3000/api";
+    // Endpoint for the api. Note that the "/api" is removed when downloading images and audio
+    private static readonly string serverLocation = "https://endlesslearner.com/api";
 
-    private static string jwt = "";//"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2MDE5NTg0MzIsIm5iZiI6MTYwMTk1ODQzMiwianRpIjoiNmRkYTg0YTYtOGI1NC00ODI3LTkyMzYtZWJkZGJlYjFjN2NhIiwiZXhwIjoxNjAzMTY4MDMyLCJpZGVudGl0eSI6OSwiZnJlc2giOmZhbHNlLCJ0eXBlIjoiYWNjZXNzIiwidXNlcl9jbGFpbXMiOiJzdSJ9.8DiuwxvITXnmEBG92UJJaNKBcJXuHLP7e3yDOYvpBsM";
+    private static string jwt = "";
     public static string username;
     public static int userID;
     public static bool rightHanded;
@@ -23,33 +25,30 @@ public class ELLEAPI : MonoBehaviour
         string response = MakeRequest("otclogin", true, new Dictionary<string, string> { { "otc", otcCode } });
         if (response == null) return null;
 
-        dynamic d = JsonToDynamic(response);
+        var jo = JObject.Parse(response);
 
-        return d.access_token;
+        return jo.Value<string>("access_token");
     }
 
     public static bool LoginWithJWT(string currentJWT)
     {
         string response;
-        dynamic d;
-
         jwt = currentJWT;
 
         response = MakeRequest("user");
         if (response == null) return false;
 
-        d = JsonToDynamic(response);
+        var jo = JObject.Parse(response);
 
-        username = d.username;
+        username = jo.Value<string>("username");
 
         response = MakeRequest("userpreferences");
         if (response == null) return false;
 
-        d = JsonToDynamic(response);
+        jo = JObject.Parse(response);
 
-        userID = (int)d.userID;
-        rightHanded = d.preferredHand == "R";
-        glovesSkin = d.vrGloveColor;
+        rightHanded = jo.Value<string>("preferredHand") == "R";
+        glovesSkin = jo.Value<string>("vrGloveColor");
 
         return true;
     }
@@ -83,7 +82,7 @@ public class ELLEAPI : MonoBehaviour
     {
         List<Module> modules = new List<Module>();
         for (int i = 0; i < modulesListJson.Count; i++)
-            modules.Add(JsonUtility.FromJson<Module>(modulesListJson[i]));
+            modules.Add(JsonConvert.DeserializeObject<Module>(modulesListJson[i]));
         return modules;
     }
 
@@ -115,7 +114,7 @@ public class ELLEAPI : MonoBehaviour
     {
         List<Question> questions = new List<Question>();
         for (int i = 0; i < questionsJson.Count; i++)
-            questions.Add(JsonUtility.FromJson<Question>(questionsJson[i]));
+            questions.Add(JsonConvert.DeserializeObject<Question>(questionsJson[i]));
         return questions;
     }
 
@@ -157,9 +156,10 @@ public class ELLEAPI : MonoBehaviour
             form.Add("mode", "endless");
 
         string response = MakeRequest("session", true, form);
-        int start = response.IndexOf(':');
-        response = response.Substring(start+1, response.IndexOf('\n', start) - start);
-        return int.Parse(response);
+
+        var jo = JObject.Parse(response);
+
+        return jo.Value<int>("sessionID");
     }
 
     public static void LogAnswer(int sessionID, Term term, bool correct, bool isEndless)
@@ -246,8 +246,9 @@ public class ELLEAPI : MonoBehaviour
 
           return jsonResponse;
         }
-        catch
+        catch (Exception e)
         {
+            print("EXCEPTION: " + e.Message);
             return null;
         }
     }
@@ -262,9 +263,9 @@ public class ELLEAPI : MonoBehaviour
 
     public IEnumerator GetTextureCoroutine(Term term)
     {
-        if (string.IsNullOrEmpty(term.imageLocation)) { print(term.imageLocation); yield break; }
-        // For some reason when grabbing images you dont include the port number
-        string url = serverLocation.Remove(serverLocation.LastIndexOf(':'));
+        if (string.IsNullOrEmpty(term.imageLocation)) yield break;
+
+        string url = serverLocation.Remove(serverLocation.LastIndexOf('/'));
         url += term.imageLocation;
 
         using (UnityWebRequest www = UnityWebRequestTexture.GetTexture(url))
@@ -272,9 +273,7 @@ public class ELLEAPI : MonoBehaviour
             yield return www.SendWebRequest();
 
             if (www.isNetworkError || www.isHttpError)
-            {
-                Debug.Log(www.error);
-            }
+                Debug.Log("IMAGE FILE ERROR: " + www.error);
             else
             {
                 Texture2D tex = ((DownloadHandlerTexture)www.downloadHandler).texture;
@@ -293,8 +292,8 @@ public class ELLEAPI : MonoBehaviour
     public IEnumerator GetAudioClipCoroutine(Term term)
     {
         if (string.IsNullOrEmpty(term.audioLocation)) yield break;
-        // For some reason when grabbing images you dont include the port number
-        string url = serverLocation.Remove(serverLocation.LastIndexOf(':'));
+
+        string url = serverLocation.Remove(serverLocation.LastIndexOf('/'));
         url += term.audioLocation;
 
         using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(url, AudioType.OGGVORBIS))
@@ -302,95 +301,9 @@ public class ELLEAPI : MonoBehaviour
             yield return www.SendWebRequest();
 
             if (www.result == UnityWebRequest.Result.ConnectionError)
-                Debug.Log(www.error);
+                Debug.Log("AUDIO FILE ERROR: " + www.error);
             else
                 term.audio = DownloadHandlerAudioClip.GetContent(www);
         }
-    }
-
-    public static dynamic JsonToDynamic(string json)
-    {
-        return ParseJsonObject(json, 0).Item1;
-    }
-
-    private static (dynamic, int) ParseJsonObject(string json, int index)
-    {
-        int i = index;
-        dynamic d = new ExpandoObject();
-
-        string key;
-
-        while(i < json.Length && json[i] != '}')
-        {
-            // GET THE KEY. IF WHILE TRYING TO GET THE KEY WE HIT A 
-            // CLOSING CURLY BRACE, WE'VE HIT THE END OF THE OBJECT
-            int charIndex = i;
-
-            while (json[charIndex] != '\"' && json[charIndex] != '}')
-                charIndex++;
-
-            if (json[charIndex] == '}') return (d, charIndex);
-
-            key = json.Substring(charIndex + 1, json.IndexOf('\"', charIndex + 1) - charIndex - 1);
-
-            i = json.IndexOf(':', json.IndexOf('\"', charIndex + 1));
-            i++;
-
-            while (json[i] == ' ') i++;
-
-
-            // GET THE VALUE. IT CAN BE A STRING, FLOAT, BOOL, OR OBJECT.
-            // IF AN OBJECT, WE WILL HAVE TO MAKE A RECURSIVE CALL.
-
-            // Value is a another object
-            if (json[i] == '{')
-            {
-                var ret = ParseJsonObject(json, i);
-                ((IDictionary<string, object>)d).Add(key, ret.Item1);
-                i = ret.Item2 + 1;
-            }
-            // Value is a string
-            else if (json[i] == '\"')
-            {
-                int j = i + 1;
-
-                do { j = json.IndexOf('\"', j); }
-                while (json[j - 1] == '\\');
-
-                ((IDictionary<string, object>)d).Add(key, json.Substring(i + 1, j - i - 1));
-                i = j + 1;
-            }
-            // Value is the bool true
-            else if(json.Length >= i + 4 &&
-            json[i] == 't' && json[i + 1] == 'r' && json[i + 2] == 'u' && json[i + 3] == 'e')
-            {
-                ((IDictionary<string, object>)d).Add(key, true);
-                i = i + 4;
-            }
-            // Value is the bool false
-            else if (json.Length >= i + 5 &&
-            json[i] == 'f' && json[i + 1] == 'a' && json[i + 2] == 'l' && json[i + 3] == 's' && json[i + 4] == 'e')
-            {
-                ((IDictionary<string, object>)d).Add(key, false);
-                i = i + 5;
-            }
-            // Value is a number
-            else
-            {
-                int j = i;
-                while (json[j] != ' ' && 
-                    json[j] != ',' && 
-                    json[j] != '}' && 
-                    json[j] != '\r' && 
-                    json[j] != '\n') 
-                    j++;
-
-                string numString = json.Substring(i, j - i);
-                ((IDictionary<string, object>)d).Add(key, float.Parse(numString));
-                i = j;
-            }
-        }
-
-        return (d, i);
     }
 }

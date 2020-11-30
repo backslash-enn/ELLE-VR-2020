@@ -28,14 +28,14 @@ public class Fader : MonoBehaviour
         }
     }
 
-    public void Fade(bool fadeIn = true, float speed = 0.15f, bool instant = false)
+    public void Fade(bool fadeIn = true, float speed = 1, bool instant = false)
     {
         if(instant)
         {
             cg.alpha = fadeIn ? 1 : 0;
             return;
         }
-        fadeSpeed = speed;
+        fadeSpeed = speed * 0.015f;
         fadingIn = fadeIn;
         fadingOut = !fadeIn;
     }

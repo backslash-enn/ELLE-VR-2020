@@ -20,4 +20,5 @@ public class Term
     public string type;
     public string gender;
     public string language;
+    public string[] tags;
 }

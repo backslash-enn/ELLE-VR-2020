@@ -7,9 +7,9 @@ public class HubworldPlayer : MonoBehaviour
     public float moveSpeed, rotationSpeed;
     public Transform cam;
     private Rigidbody rb;
-    public bool inSpinNSpell, inFF;
     public Fader blackFader;
     public Transform groundT;
+    public string chosenScene;
 
     void Start()
     {
@@ -49,15 +49,13 @@ public class HubworldPlayer : MonoBehaviour
 
         transform.Rotate(Vector3.up * VRInput.rightStick.x * rotationSpeed * 10 * Time.deltaTime);
 
-        if (VRInput.a && inSpinNSpell)
-            StartCoroutine(LoadScene("SpinNSpell"));
-        if (VRInput.a && inFF)
-            StartCoroutine(LoadScene("HighriseHellep"));
+        if ((VRInput.a || VRInput.x) && chosenScene != "")
+            StartCoroutine(LoadScene(chosenScene));
     }
 
     private IEnumerator LoadScene(string scene)
     {
-        blackFader.Fade(true, .5f);
+        blackFader.Fade(true, 1f);
         yield return new WaitForSeconds(2);
         SceneManager.LoadScene(scene);
     }

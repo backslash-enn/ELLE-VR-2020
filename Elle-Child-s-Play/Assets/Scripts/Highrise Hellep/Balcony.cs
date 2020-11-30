@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 
 public class Balcony : MonoBehaviour
@@ -10,6 +9,8 @@ public class Balcony : MonoBehaviour
     public Light l;
     private Term currentTerm;
     public TMP_Text t;
+    private bool animatingIn;
+    private float animateInFactor;
 
     public void Activate(Term term)
     {
@@ -22,14 +23,17 @@ public class Balcony : MonoBehaviour
         embers.Play();
         smoke.Play();
         l.gameObject.SetActive(true);
-        l.intensity = 4;
+        animateInFactor = l.intensity = 0;
+        animatingIn = true;
     }
 
     private void Update()
     {
         float lerpThing = life / 1.5f;
 
-        l.intensity = Mathf.Lerp(0, 4, lerpThing);
+        animateInFactor += 1 * Time.deltaTime;
+        if (animateInFactor >= 1) animatingIn = false;
+        l.intensity = Mathf.Lerp(0, 4, animatingIn ? animateInFactor : lerpThing);
 
         var e = fire.emission;
         e.rateOverTime = Mathf.Lerp(0, 120, lerpThing);

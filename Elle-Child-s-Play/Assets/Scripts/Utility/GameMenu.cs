@@ -29,7 +29,6 @@ public class GameMenu : MonoBehaviour
     public Button checkTermsButton, uncheckTermsButton, startButton;
     public TMP_Text scoreFractionText, scorePercentageText;
 
-    private List<Module> moduleList;
     private bool ctmIsOpen, openingCTM, closingCTM;
     public Transform termListUIParent;
     public GameObject termUIElement;
@@ -39,6 +38,8 @@ public class GameMenu : MonoBehaviour
 
     [HideInInspector]
     public GameMode currentGameMode = GameMode.Quiz;
+    [HideInInspector]
+    public List<Module> moduleList;
     [HideInInspector]
     public List<Term> termList;
     [HideInInspector]

@@ -16,8 +16,13 @@ public class HighriseHellepeManager : MonoBehaviour
     private GameMode currentGameMode = GameMode.Quiz;
     private List<Term> termList;
     private List<Term> termsBag;
+    private List<Term> dummyTermList;
     private List<string> correctTerms;
     private int score = 0;
+    private int realScore = 0;
+
+    private bool tagCatValid, genderCatValid, posCatValid, moduleNameCatValid;
+    private bool hasNouns, hasVerbs, hasAdjectives, hasAdverbs;
 
     public ObiEmitter oe;
 
@@ -25,7 +30,8 @@ public class HighriseHellepeManager : MonoBehaviour
 
     public TMP_Text ledSign;
 
-    private AudioSource aud;
+    private AudioSource aud, hoseAud;
+    public AudioSource fireAud;
 
     public Fader blackFader;
 
@@ -55,6 +61,7 @@ public class HighriseHellepeManager : MonoBehaviour
 
         aud = GetComponent<AudioSource>();
         truckAud = truck.GetComponent<AudioSource>();
+        hoseAud = nozzle.GetComponent<AudioSource>();
 
         if (ELLEAPI.rightHanded == false)
         {
@@ -99,7 +106,7 @@ public class HighriseHellepeManager : MonoBehaviour
             x.fillAmount += 1.5f * Time.deltaTime;
         }
 
-        if (!menu.inGame) return;
+        //if (!menu.inGame) return;
 
         if (Physics.Raycast(pointerController.position, pointerController.forward, out RaycastHit hit))
         {
@@ -113,6 +120,8 @@ public class HighriseHellepeManager : MonoBehaviour
         }
 
         oe.speed = Mathf.Lerp(0, 15, ELLEAPI.rightHanded ? VRInput.rightTrigger : VRInput.leftTrigger);
+        hoseAud.volume = Mathf.Lerp(0, 0.4f, ELLEAPI.rightHanded ? VRInput.rightTrigger : VRInput.leftTrigger);
+        
     }
 
     public void MoveTruck()
@@ -125,14 +134,26 @@ public class HighriseHellepeManager : MonoBehaviour
 
     private IEnumerator StartSequence()
     {
+        int i;
+
         currentGameMode = menu.currentGameMode;
         termList = menu.termList;
 
         sessionID = ELLEAPI.StartSession(menu.currentModule.moduleID, currentGameMode == GameMode.Endless);
 
+        // remove
         if (currentGameMode == GameMode.Endless)
         {
-            for (int i = termList.Count - 1; i >= 0; i--)
+            for (i = termsBag.Count - 1; i >= 0; i--)
+            {
+                if (menu.termEnabled[i] == false)
+                    termsBag.RemoveAt(i);
+            }
+        }
+
+        if (currentGameMode == GameMode.Endless)
+        {
+            for (i = termList.Count - 1; i >= 0; i--)
             {
                 if (menu.termEnabled[i] == false)
                     termList.RemoveAt(i);
@@ -162,8 +183,9 @@ public class HighriseHellepeManager : MonoBehaviour
         fireHYDRANTanchor.position = fireHYDRANT.position;
 
         domHand.parent = ELLEAPI.rightHanded ? rightHand : leftHand;
+        domHand.localPosition = new Vector3(0.06f, 0, 0) * (ELLEAPI.rightHanded ? 1 : -0.75f);
+        domHand.localRotation = Quaternion.identity;
         nondomHand.parent = ELLEAPI.rightHanded ? leftHand : rightHand;
-        domHand.localPosition = domHand.localEulerAngles = Vector3.zero;
         nondomHand.localPosition = nondomHand.localEulerAngles = Vector3.zero;
 
         if(!ELLEAPI.rightHanded)
@@ -172,7 +194,7 @@ public class HighriseHellepeManager : MonoBehaviour
             Vector3 p = nozzle.transform.localPosition;
             nozzle.transform.parent = leftHand;
             nozzle.transform.localEulerAngles = r + new Vector3(0, 0, 180);
-            nozzle.transform.localPosition = new Vector3(0.0678f, p.y, p.z);
+            nozzle.transform.localPosition = p;
         }
 
         Instantiate(littlePoof, rightHand.transform.position, Quaternion.identity);
@@ -183,6 +205,65 @@ public class HighriseHellepeManager : MonoBehaviour
         yield return new WaitForSeconds(3);
 
         menu.StartInGameMusic();
+
+        // Not all catergory types are valid, so we figure that stuff out here
+        int gotATagCount = 0;
+        bool hasAMale = false, hasAFemale = false;
+
+        for(i = 0; i < termsBag.Count; i++)
+        {
+            if(termsBag[i].tags != null && termsBag[i].tags.Length > 0)
+                gotATagCount++;
+            if (termsBag[i].gender.ToLower() == "m")
+                hasAMale = true;
+            else if (termsBag[i].gender.ToLower() == "f")
+                hasAFemale = true;
+
+            if (termsBag[i].type.ToLower() == "nn")
+                hasNouns = true;
+            else if (termsBag[i].type.ToLower() == "vr")
+                hasVerbs = true;
+            else if (termsBag[i].type.ToLower() == "aj")
+                hasAdjectives = true;
+            else if (termsBag[i].type.ToLower() == "av")
+                hasAdverbs = true;
+        }
+
+        // We only use the tags catergory if at least 30% of the terms in the deck have at least 1 tag
+        tagCatValid = (((float)gotATagCount / termsBag.Count) >= 0.3f);
+        // Only use gender catergory if there is at least one male and one female in the deck
+        genderCatValid = (hasAMale && hasAFemale);
+        // Only use part of speech module if at least 2 different parts of speech are in the module
+        int posCount = 0;
+        if (hasNouns) posCount++;
+        if (hasVerbs) posCount++;
+        if (hasAdjectives) posCount++;
+        if (hasAdverbs) posCount++;
+        posCatValid = (posCount >= 2);
+        // Only use module name catergory if the words "chapter", "final", "section","review", "test", or "midterm" are not in the module name
+        moduleNameCatValid = false;
+        if (!(menu.currentModule.name.ToLower().Contains("chapter")
+                                || menu.currentModule.name.ToLower().Contains("final")
+                                || menu.currentModule.name.ToLower().Contains("section")
+                                || menu.currentModule.name.ToLower().Contains("review")
+                                || menu.currentModule.name.ToLower().Contains("test")
+                                || menu.currentModule.name.ToLower().Contains("midterm"))) {
+            dummyTermList = new List<Term>();
+            for (i = 0; i < menu.moduleList.Count; i++)
+            {
+                if (menu.moduleList[i].moduleID != menu.currentModule.moduleID &&
+                    menu.moduleList[i].language != menu.currentModule.language)
+                {
+                    print($"Hey, {menu.moduleList[i].name} is also a module in {menu.currentModule.language}!");
+                    List<Term> temp = ELLEAPI.GetTermsFromModule(menu.moduleList[i].moduleID);
+                    for(int j = 0; j < temp.Count; j++)
+                        dummyTermList.Add(temp[j]);                    
+                    print("It also has a good amount of terms! " + dummyTermList.Count + " terms to be exact");
+                }
+            }
+
+            moduleNameCatValid = (dummyTermList.Count >= 4);
+        }
 
         if (termList.Count < 4)
             StartCoroutine(FinishGame());
@@ -211,6 +292,7 @@ public class HighriseHellepeManager : MonoBehaviour
 
     private void DoRound()
     {
+        print("=============================");
         StartCoroutine(DoRoundCoroutine());
     }
 
@@ -228,14 +310,58 @@ public class HighriseHellepeManager : MonoBehaviour
         aud.clip = roundSound;
         aud.Play();
 
-        if (currentRound <= 8)
+        if (currentRound <= 8 || currentGameMode == GameMode.Endless)
         {
-            IndividualsCatergory();
+            int chosenThing = 0;
+            while (chosenThing != 5)
+            {
+                chosenThing = Random.Range(0, 5);
+                if (chosenThing == 0)
+                {
+                    IndividualsCatergory();
+                    chosenThing = 5;
+                }
+                else if (chosenThing == 1)
+                {
+                    if (tagCatValid)
+                    {
+                        TagCatergory();
+                        chosenThing = 5;
+                    }
+                }
+                else if (chosenThing == 2)
+                {
+                    if (genderCatValid)
+                    {
+                        GenderCatergory();
+                        chosenThing = 5;
+                    }
+                }
+                else if (chosenThing == 3)
+                {
+                    if (posCatValid)
+                    {
+                        PartOfSpeechCatergory();
+                        chosenThing = 5;
+                    }
+                }
+                else if (chosenThing == 4)
+                {
+                    if (moduleNameCatValid)
+                    {
+                        ModuleNameCatergory();
+                        chosenThing = 5;
+                    }
+                }
+            }
         }
         else
         {
             StartCoroutine(FinishGame());
         }
+
+        fireAud.time = 0;
+        fireAud.Play();
 
         yellowScreen.SetActive(true);
         yield return new WaitForSeconds(.05f);
@@ -248,8 +374,8 @@ public class HighriseHellepeManager : MonoBehaviour
 
     private void IndividualsCatergory()
     {
-        // Spawn anywhere between 6 and 16 balconies...
-        int numBalconies = Random.Range(6, 17);
+        // Spawn anywhere between 4 and 16 balconies...
+        int numBalconies = Random.Range(4, 17);
         // That is, if we even have enough terms
         numBalconies = Mathf.Min(numBalconies, termsBag.Count);
 
@@ -264,13 +390,187 @@ public class HighriseHellepeManager : MonoBehaviour
         correctTerms.Clear();
         for (int i = 0; i < numBalconies; i++)
         {
-            print($"chosen Len: {chosenTermIndices.Length}, chosen ind: {i} | bag length: {termsBag.Count}, term i: {chosenTermIndices[i]} | bal len: {chosenBalconies[i]}, bal i: {i}");
             if (i < 3)
             {
                 ledSign.text += termsBag[chosenTermIndices[i]].back + "\n";
                 correctTerms.Add(termsBag[chosenTermIndices[i]].back);
             }
             balconies[chosenBalconies[i]].Activate(termsBag[chosenTermIndices[i]]);
+        }
+    }
+
+    private void TagCatergory()
+    {
+        // Spawn anywhere between 4 and 16 balconies...
+        int numBalconies = Random.Range(4, 17);
+        // That is, if we even have enough terms
+        numBalconies = Mathf.Min(numBalconies, termsBag.Count);
+
+        // We choose our terms to show on the balconies here. To choose, simply choose a
+        // random index, and check if it's taken. If it is, just linear probe until you
+        // find an open index
+        int[] chosenTermIndices = new int[0];
+        string chosenTag = "";
+
+        // Pick the tag and the terms
+        while (chosenTag == "") {
+            chosenTermIndices = GenerateRandomArray(numBalconies, termsBag.Count);
+            for (int i = 0; i < numBalconies; i++) {
+                if (termsBag[chosenTermIndices[i]].tags.Length != 0)
+                {
+                    int ctIndex = Random.Range(0, termsBag[chosenTermIndices[i]].tags.Length);
+                    chosenTag = termsBag[chosenTermIndices[i]].tags[ctIndex].ToLower();
+                    break;
+                }
+            }
+        }
+
+        // Know which terms match our chosen tag
+        correctTerms.Clear();
+        for (int i = 0; i < numBalconies; i++)
+        {
+            for (int j = 0; j < termsBag[chosenTermIndices[i]].tags.Length; j++)
+            {
+                if (termsBag[chosenTermIndices[i]].tags[j].ToLower() == chosenTag)
+                {
+                    correctTerms.Add(termsBag[chosenTermIndices[i]].back);
+                    break;
+                }
+            }
+        }
+
+        // Now that we've grabbed a random number of random terms, we now have to apply it to
+        // some random balconies - the same number of balconies as the number of terms we have
+        ledSign.text = chosenTag;
+        int[] chosenBalconies = GenerateRandomArray(numBalconies, 16);
+        for (int i = 0; i < numBalconies; i++)
+            balconies[chosenBalconies[i]].Activate(termsBag[chosenTermIndices[i]]);
+    }
+
+    private void GenderCatergory()
+    {
+        // Spawn anywhere between 4 and 16 balconies...
+        int numBalconies = Random.Range(4, 17);
+        // That is, if we even have enough terms
+        numBalconies = Mathf.Min(numBalconies, termsBag.Count);
+
+        // We choose our terms to show on the balconies here. To choose, simply choose a
+        // random index, and check if it's taken. If it is, just linear probe until you
+        // find an open index
+        int[] chosenTermIndices = new int[0];
+        bool choseGender = false, isMale = false;
+
+        // Pick the tag and the terms
+        while (choseGender == false)
+        {
+            chosenTermIndices = GenerateRandomArray(numBalconies, termsBag.Count);
+            for (int i = 0; i < numBalconies; i++)
+            {
+                if (!string.IsNullOrEmpty(termsBag[chosenTermIndices[i]].gender) && termsBag[chosenTermIndices[i]].gender.ToLower() != "n")
+                {
+                    isMale = (termsBag[chosenTermIndices[i]].gender.ToLower() == "m");
+                    choseGender = true;
+                    break;
+                }
+            }
+        }
+
+        // Know which terms match our chosen tag
+        correctTerms.Clear();
+        for (int i = 0; i < numBalconies; i++)
+        {
+            if ((termsBag[chosenTermIndices[i]].gender.ToLower() == "m" && isMale) || (termsBag[chosenTermIndices[i]].gender.ToLower() == "f" && !isMale))
+                correctTerms.Add(termsBag[chosenTermIndices[i]].back);
+        }
+
+        // Now that we've grabbed a random number of random terms, we now have to apply it to
+        // some random balconies - the same number of balconies as the number of terms we have
+        ledSign.text = isMale ? "Masculine terms" : "Feminine terms";
+        int[] chosenBalconies = GenerateRandomArray(numBalconies, 16);
+        for (int i = 0; i < numBalconies; i++)
+            balconies[chosenBalconies[i]].Activate(termsBag[chosenTermIndices[i]]);
+    }
+
+    private void PartOfSpeechCatergory()
+    {
+        // Spawn anywhere between 4 and 16 balconies...
+        int numBalconies = Random.Range(4, 17);
+        // That is, if we even have enough terms
+        numBalconies = Mathf.Min(numBalconies, termsBag.Count);
+
+        // We choose our terms to show on the balconies here. To choose, simply choose a
+        // random index, and check if it's taken. If it is, just linear probe until you
+        // find an open index
+        int[] chosenTermIndices = new int[0];
+        string chosenPOS = "";
+
+        // Pick the tag and the terms
+        while (chosenPOS == "")
+        {
+            chosenTermIndices = GenerateRandomArray(numBalconies, termsBag.Count);
+            for (int i = 0; i < numBalconies; i++)
+            {
+                if (!string.IsNullOrEmpty(termsBag[chosenTermIndices[i]].type))
+                {
+                    chosenPOS = termsBag[chosenTermIndices[i]].type.ToLower();
+                    break;
+                }
+            }
+        }
+
+        // Know which terms match our chosen tag
+        correctTerms.Clear();
+        for (int i = 0; i < numBalconies; i++)
+        {
+            if (termsBag[chosenTermIndices[i]].type.ToLower() == chosenPOS)
+                correctTerms.Add(termsBag[chosenTermIndices[i]].back);
+        }
+
+        // Now that we've grabbed a random number of random terms, we now have to apply it to
+        // some random balconies - the same number of balconies as the number of terms we have
+        string t = "";
+        if      (chosenPOS == "nn") t = "Noun terms";
+        else if (chosenPOS == "vr") t = "Verb terms";
+        else if (chosenPOS == "av") t = "Adjverb terms";
+        else if (chosenPOS == "aj") t = "Adjective terms";
+        ledSign.text = t;
+        int[] chosenBalconies = GenerateRandomArray(numBalconies, 16);
+        for (int i = 0; i < numBalconies; i++)
+            balconies[chosenBalconies[i]].Activate(termsBag[chosenTermIndices[i]]);
+    }
+
+    private void ModuleNameCatergory()
+    {
+        // Spawn anywhere between 4 and 8 balconies from this module...
+        int numBalconiesThisModule = Random.Range(4, 9);
+        // That is, if we even have enough terms
+        numBalconiesThisModule = Mathf.Min(numBalconiesThisModule, termsBag.Count);
+        // Spawn anywhere between 4 and 8 balconies from this module...
+        int numBalconiesDummyModule = Random.Range(4, 9);
+        // That is, if we even have enough terms
+        numBalconiesDummyModule = Mathf.Min(numBalconiesDummyModule, dummyTermList.Count);
+
+        // We choose our terms to show on the balconies here. To choose, simply choose a
+        // random index, and check if it's taken. If it is, just linear probe until you
+        // find an open index
+        int[] chosenTermIndicesThisModule = GenerateRandomArray(numBalconiesThisModule, termsBag.Count);
+        int[] chosenTermIndicesDummyModule = GenerateRandomArray(numBalconiesDummyModule, dummyTermList.Count);
+
+        ledSign.text = menu.currentModule.name;
+
+        // Now that we've grabbed a random number of random terms, we now have to apply it to
+        // some random balconies - the same number of balconies as the number of terms we have
+        int[] chosenBalconies = GenerateRandomArray(numBalconiesThisModule + numBalconiesDummyModule, 16);
+        correctTerms.Clear();
+        for (int i = 0; i < numBalconiesThisModule + numBalconiesDummyModule; i++)
+        {
+            if (i < numBalconiesThisModule)
+            {
+                correctTerms.Add(termsBag[chosenTermIndicesThisModule[i]].back);
+                balconies[chosenBalconies[i]].Activate(termsBag[chosenTermIndicesThisModule[i]]);
+            }
+            else
+                balconies[chosenBalconies[i]].Activate(dummyTermList[chosenTermIndicesDummyModule[i - numBalconiesThisModule]]);
         }
     }
 
@@ -289,7 +589,7 @@ public class HighriseHellepeManager : MonoBehaviour
             while (!open)
             {
                 retVal[i]++;
-                retVal[i] %= termsBag.Count;
+                retVal[i] %= numElementsToPickFrom;
                 open = true;
                 for (int j = 0; j < i; j++)
                 {
@@ -311,7 +611,18 @@ public class HighriseHellepeManager : MonoBehaviour
             if (correctTerms[i] == termPutOut)
             {
                 putOutCorrectTerm = true;
+                for(int j = 0; j < termsBag.Count; j++)
+                {
+                    if(termsBag[j].back == correctTerms[i])
+                    {
+                        ELLEAPI.LogAnswer(sessionID, termsBag[j], true, currentGameMode == GameMode.Endless);
+                        if(termsBag[j].audio != null)
+                            AudioSource.PlayClipAtPoint(termsBag[j].audio, new Vector3(0, 0, 5));
+                        break;
+                    }
+                }
                 correctTerms.RemoveAt(i);
+                realScore++;
                 break;
             }
         }
@@ -335,9 +646,21 @@ public class HighriseHellepeManager : MonoBehaviour
             x.transform.localScale = Vector3.one;
             x.fillAmount = 0;
             incorrectAnimation = true;
+            for(int i = 0; i < correctTerms.Count; i++)
+            {
+                for (int j = 0; j < termsBag.Count; j++)
+                {
+                    if (termsBag[j].back == correctTerms[i])
+                    {
+                        ELLEAPI.LogAnswer(sessionID, termsBag[j], false, currentGameMode == GameMode.Endless);
+                        break;
+                    }
+                }
+            }
         }
 
         aud.Play();
+        fireAud.Stop();
         DeactivateAllBalconies();
         DoRound();
     }
@@ -350,7 +673,7 @@ public class HighriseHellepeManager : MonoBehaviour
 
     private IEnumerator FinishGame()
     {
-        //dontLeaveTooEarlyFlag = true;
+        fireAud.Stop();
         menu.inGame = false;
         menu.finishedGame = true;
         PauseMenu.canPause = false;
@@ -364,19 +687,14 @@ public class HighriseHellepeManager : MonoBehaviour
         leftHandAnim.SetBool("InGame", false);
         rightHandAnim.SetBool("InGame", false);
 
-        //aud.clip = switchModeSound;
-        //aud.Play();
-
         menu.FadeOutMusic();
-        ELLEAPI.EndSession(sessionID, score);
+        ELLEAPI.EndSession(sessionID, realScore);
 
         yield return new WaitForSeconds(2);
 
         t = 0;
         truckAud.Play();
         movingTruckIn = true;
-        //dontLeaveTooEarlyFlag = false;
-        //projectorAud.Play();
         menu.StartPostGameMusic();
         menu.EnableEndMenu(score, 8);
 
