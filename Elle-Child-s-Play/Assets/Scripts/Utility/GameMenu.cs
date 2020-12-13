@@ -90,8 +90,7 @@ public class GameMenu : MonoBehaviour
         {
             GameObject g = Instantiate(moduleUIElement, moduleListUIParent);
             g.transform.GetChild(0).GetComponent<TMP_Text>().text = moduleList[i].name;
-            g.transform.GetChild(1).GetComponent<TMP_Text>().text = "LEVEL: " + moduleList[i].complexity;
-            g.transform.GetChild(2).GetChild(0).GetComponent<TMP_Text>().text = moduleList[i].language.ToUpper();
+            g.transform.GetChild(1).GetChild(0).GetComponent<TMP_Text>().text = moduleList[i].language.ToUpper();
             g.GetComponent<MenuModule>().menu = this;
 
             var b = g.GetComponent<Button>().colors;

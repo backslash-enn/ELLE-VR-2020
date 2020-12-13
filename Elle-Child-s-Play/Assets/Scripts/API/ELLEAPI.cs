@@ -19,7 +19,7 @@ public class ELLEAPI : MonoBehaviour
     public static int userID;
     public static bool rightHanded;
     public static string glovesSkin;
-
+    
     public static string GetJWTFromOTC(string otcCode)
     {
         string response = MakeRequest("otclogin", true, new Dictionary<string, string> { { "otc", otcCode } });

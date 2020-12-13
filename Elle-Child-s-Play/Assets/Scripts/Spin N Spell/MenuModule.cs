@@ -8,7 +8,6 @@ public class MenuModule : MonoBehaviour, ISelectHandler
     [HideInInspector]
     public GameMenu menu;
     public AudioSource aud;
-    
 
     private static bool started = false;
 
