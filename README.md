@@ -65,7 +65,7 @@ Once you have your amazing new game, you will want to make it accssible to playe
 
 1. First things first, add your game scene to the build via *File -> Build Settings* and dragging your scene into the "Scenes In Build" window. Remember the scene name.
 2. We call the little stations in the Hubworld used to access games __Kiosks__. To make a new one, go to *Assets -> Prefabs -> General* and drag in the Kiosk prefab.
-    * __IMPORTANT: after dragging the prefab into the scene, right click -> prefab -> unpack, to ensure your changes do not change the kiosk template.____ 
+    * __IMPORTANT: after dragging the prefab into the scene, right click -> prefab -> unpack, to ensure your changes do not change the kiosk template.__
 3. In the scene object, put the visual display for the kiosk under *Kiosk -> Display Parent*
 4. Attached to the Kiosk is the Kiosk script, which two public fields in the inspector you need to set.
     * Set the "Game Title" field to the name of the game. This name will pop up in-game when the player walks up to this Kiosk.
