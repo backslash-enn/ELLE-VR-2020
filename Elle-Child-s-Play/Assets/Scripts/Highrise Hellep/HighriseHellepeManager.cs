@@ -106,7 +106,7 @@ public class HighriseHellepeManager : MonoBehaviour
             x.fillAmount += 1.5f * Time.deltaTime;
         }
 
-        //if (!menu.inGame) return;
+        if (!menu.inGame) return;
 
         if (Physics.Raycast(pointerController.position, pointerController.forward, out RaycastHit hit))
         {
@@ -126,9 +126,6 @@ public class HighriseHellepeManager : MonoBehaviour
 
     public void MoveTruck()
     {
-        menu.inGame = true;
-        PauseMenu.canPause = true;
-        menu.DisableStartMenu();
         StartCoroutine(StartSequence());
     }
 
@@ -163,7 +160,6 @@ public class HighriseHellepeManager : MonoBehaviour
         FillTermBag();
 
         truckAud.Play();
-        menu.FadeOutMusic();
         movingTruckOut = true;
 
         yield return new WaitForSeconds(3.5f);
@@ -254,11 +250,9 @@ public class HighriseHellepeManager : MonoBehaviour
                 if (menu.moduleList[i].moduleID != menu.currentModule.moduleID &&
                     menu.moduleList[i].language != menu.currentModule.language)
                 {
-                    print($"Hey, {menu.moduleList[i].name} is also a module in {menu.currentModule.language}!");
                     List<Term> temp = ELLEAPI.GetTermsFromModule(menu.moduleList[i].moduleID);
                     for(int j = 0; j < temp.Count; j++)
                         dummyTermList.Add(temp[j]);                    
-                    print("It also has a good amount of terms! " + dummyTermList.Count + " terms to be exact");
                 }
             }
 
@@ -292,7 +286,6 @@ public class HighriseHellepeManager : MonoBehaviour
 
     private void DoRound()
     {
-        print("=============================");
         StartCoroutine(DoRoundCoroutine());
     }
 
@@ -674,9 +667,7 @@ public class HighriseHellepeManager : MonoBehaviour
     private IEnumerator FinishGame()
     {
         fireAud.Stop();
-        menu.inGame = false;
-        menu.finishedGame = true;
-        PauseMenu.canPause = false;
+        
         Instantiate(littlePoof, leftHand.transform.position, Quaternion.identity);
         Instantiate(littlePoof, rightHand.transform.position, Quaternion.identity);
 
@@ -687,7 +678,7 @@ public class HighriseHellepeManager : MonoBehaviour
         leftHandAnim.SetBool("InGame", false);
         rightHandAnim.SetBool("InGame", false);
 
-        menu.FadeOutMusic();
+        menu.EndGame(score, 8);
         ELLEAPI.EndSession(sessionID, realScore);
 
         yield return new WaitForSeconds(2);
@@ -696,7 +687,6 @@ public class HighriseHellepeManager : MonoBehaviour
         truckAud.Play();
         movingTruckIn = true;
         menu.StartPostGameMusic();
-        menu.EnableEndMenu(score, 8);
 
         yield return new WaitForSeconds(5f);
         movingTruckIn = false;

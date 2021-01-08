@@ -11,7 +11,6 @@ public class LoginManager : MonoBehaviour
 
     void Start()
     {
-        PlayerPrefs.DeleteAll();
         string jwt = PlayerPrefs.GetString("jwt", "");
         if (!string.IsNullOrEmpty(jwt))
             TryToGetIn(jwt);

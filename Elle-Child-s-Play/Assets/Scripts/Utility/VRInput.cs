@@ -18,7 +18,7 @@ public class VRInput : MonoBehaviour
 
     public float digitalThreshold = 0.3f;
 
-    public static bool leftTriggerDown, leftTriggerUp, rightTriggerDown, rightTriggerUp;
+    public static bool leftTriggerDigitalDown, leftTriggerDigitalUp, rightTriggerDigitalDown, rightTriggerDigitalUp;
     public static bool leftGripDown, leftGripUp, rightGripDown, rightGripUp;
     public static bool aDown, aUp, bDown, bUp, xDown, xUp, yDown, yUp;
     public static bool leftStickClickDown, leftStickClickUp, rightStickClickDown, rightStickClickUp;
@@ -40,13 +40,13 @@ public class VRInput : MonoBehaviour
         leftHand.TryGetFeatureValue(CommonUsages.trigger, out leftTrigger);
         temp = leftTriggerDigital;
         leftTriggerDigital = leftTrigger >= digitalThreshold;
-        leftTriggerDown = (!temp && leftTriggerDigital);
-        leftTriggerUp = (temp && !leftTriggerDigital);
+        leftTriggerDigitalDown = (!temp && leftTriggerDigital);
+        leftTriggerDigitalUp = (temp && !leftTriggerDigital);
         rightHand.TryGetFeatureValue(CommonUsages.trigger, out rightTrigger);
         temp = rightTriggerDigital;
         rightTriggerDigital = rightTrigger >= digitalThreshold;
-        rightTriggerDown = (!temp && rightTriggerDigital);
-        rightTriggerUp = (temp && !rightTriggerDigital);
+        rightTriggerDigitalDown = (!temp && rightTriggerDigital);
+        rightTriggerDigitalUp = (temp && !rightTriggerDigital);
 
         leftHand.TryGetFeatureValue(CommonUsages.grip, out leftGrip);
         temp = leftGripDigital;

@@ -19,7 +19,13 @@ public class ELLEAPI : MonoBehaviour
     public static int userID;
     public static bool rightHanded;
     public static string glovesSkin;
-    
+    private static string GOName;
+
+    public void Start()
+    {
+        GOName = gameObject.name;
+    }
+
     public static string GetJWTFromOTC(string otcCode)
     {
         string response = MakeRequest("otclogin", true, new Dictionary<string, string> { { "otc", otcCode } });
@@ -108,6 +114,16 @@ public class ELLEAPI : MonoBehaviour
             }
         }
         return terms;
+    }
+
+    public static List<Question> GetQuestionsFromModule(int moduleID)
+    {
+        string questionsJson = MakeRequest("modulequestions", true, new Dictionary<string, string> { { "moduleID", moduleID.ToString() } });
+
+        var temp = SplitJsonArray(questionsJson);
+        List<Question> questions = GetQuestionsFromJsonArray(temp);
+
+        return questions;
     }
 
     private static List<Question> GetQuestionsFromJsonArray(List<string> questionsJson)
@@ -257,7 +273,7 @@ public class ELLEAPI : MonoBehaviour
     {
         print("starting get texture");
         // Coroutines cannot be static. This is my hacky workaround
-        var instance = GameObject.Find("Manager").GetComponent<ELLEAPI>();
+        var instance = GameObject.Find(GOName).GetComponent<ELLEAPI>();
         instance.StartCoroutine(instance.GetTextureCoroutine(term));
     }
 
@@ -285,7 +301,7 @@ public class ELLEAPI : MonoBehaviour
     public static void GetAudioClip(Term term)
     {
         // Coroutines cannot be static. This is my hacky workaround
-        var instance = GameObject.Find("Manager").GetComponent<ELLEAPI>();
+        var instance = GameObject.Find(GOName).GetComponent<ELLEAPI>();
         instance.StartCoroutine(instance.GetAudioClipCoroutine(term));
     }
 

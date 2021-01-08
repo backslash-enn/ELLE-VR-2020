@@ -73,9 +73,6 @@ public class SpinNSpelleManager : MonoBehaviour
         raiseProjectorScreen = true;
         t = 0;
         projectorAud.Play();
-        menu.FadeOutMusic();
-        menu.inGame = true;
-        PauseMenu.canPause = true;
     }
 
     void Update()
@@ -89,7 +86,6 @@ public class SpinNSpelleManager : MonoBehaviour
             if (t >= 1)
             {
                 raiseProjectorScreen = false;
-                menu.DisableStartMenu();
                 StartCoroutine(GetItStarted());
             }
         }
@@ -301,7 +297,6 @@ public class SpinNSpelleManager : MonoBehaviour
 
         attempts++;
 
-
         if (correct) score++;
         ELLEAPI.LogAnswer(sessionID, term, correct, currentGameMode == GameMode.Endless);
 
@@ -368,9 +363,6 @@ public class SpinNSpelleManager : MonoBehaviour
     private IEnumerator FinishIt()
     {
         dontLeaveTooEarlyFlag = true;
-        menu.inGame = false;
-        menu.finishedGame = true;
-        PauseMenu.canPause = false;
         Instantiate(littlePoof, leftHand.transform.position, Quaternion.identity);
         Instantiate(littlePoof, rightHand.transform.position, Quaternion.identity);
         Instantiate(bigPoof, cubbyBasePosition);
@@ -384,7 +376,7 @@ public class SpinNSpelleManager : MonoBehaviour
         aud.clip = switchModeSound;
         aud.Play();
 
-        menu.FadeOutMusic();
+        menu.EndGame(score, attempts);
         ELLEAPI.EndSession(sessionID, score);
 
         yield return new WaitForSeconds(2);
@@ -393,7 +385,6 @@ public class SpinNSpelleManager : MonoBehaviour
         dontLeaveTooEarlyFlag = false;
         t = 1;
         projectorAud.Play();
-        menu.EnableEndMenu(score, attempts);
 
         if (blocksParent.GetComponent<BlockCountManager>().frozenBlocks)
             blocksParent.GetComponent<BlockCountManager>().ToggleFrozenBlocks();

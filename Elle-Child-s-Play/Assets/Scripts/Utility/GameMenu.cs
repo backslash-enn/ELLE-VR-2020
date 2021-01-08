@@ -43,6 +43,8 @@ public class GameMenu : MonoBehaviour
     [HideInInspector]
     public List<Term> termList;
     [HideInInspector]
+    public List<Question> questionList;
+    [HideInInspector]
     public bool[] termEnabled;
     [HideInInspector]
     public Module currentModule;
@@ -255,6 +257,7 @@ public class GameMenu : MonoBehaviour
     {
         currentModule = moduleList[moduleIndex];
         termList = ELLEAPI.GetTermsFromModule(currentModule.moduleID);
+        questionList = ELLEAPI.GetQuestionsFromModule(currentModule.moduleID);
 
         if (currentGameMode == GameMode.Quiz)
             StartGame();
@@ -337,16 +340,8 @@ public class GameMenu : MonoBehaviour
         termEnabled[termIndex] = !termEnabled[termIndex];
     }
 
-    public void DisableStartMenu() 
-    { 
-        startMenu.SetActive(false); 
-    }
-    public void EnableEndMenu(int points, int attempts)
-    { 
-        endMenu.SetActive(true);
-        scoreFractionText.text = points + "/" + attempts;
-        scorePercentageText.text = termList.Count == 0 ? "-%" : Mathf.RoundToInt(100 * points / (float)attempts) + "%";
-    }
+    public void DisableStartMenu() => startMenu.SetActive(false); 
+    public void EnableStartMenu() => startMenu.SetActive(true);
 
     public void StartInGameMusic()
     {
@@ -376,6 +371,11 @@ public class GameMenu : MonoBehaviour
         openingCTM = false;
         ctmIsOpen = false;
 
+        inGame = true;
+        DisableStartMenu();
+        FadeOutMusic();
+        PauseMenu.canPause = true;
+
         for (int i = 0; i < moduleListUIParent.childCount; i++)
             moduleListUIParent.GetChild(i).GetComponent<MenuModule>().enabled = false;
 
@@ -388,6 +388,18 @@ public class GameMenu : MonoBehaviour
             Debug.LogError("There is no callback for the menu. Assign a function to the " +
                 "onStartGame delegate to kick off the game!");
         }
+    }
+
+    public void EndGame(int points, int attempts)
+    {
+        inGame = false;
+        finishedGame = true;
+        FadeOutMusic();
+        PauseMenu.canPause = false;
+
+        endMenu.SetActive(true);
+        scoreFractionText.text = points + "/" + attempts;
+        scorePercentageText.text = termList.Count == 0 ? "-%" : Mathf.RoundToInt(100 * points / (float)attempts) + "%";
     }
 }
 

@@ -43,27 +43,27 @@ public class HubworldMenu : MonoBehaviour
                 if (hit.transform.name == "Left Hand Button")
                 {
                     leftHandHovered = true;
-                    if (VRInput.leftTriggerDown)
+                    if (VRInput.leftTriggerDigitalDown)
                         UpdateHandAndHopefullyInBackendToo(false);
                 }
                 if (hit.transform.name == "Right Hand Button")
                 {
                     rightHandHovered = true;
-                    if (VRInput.leftTriggerDown)
+                    if (VRInput.leftTriggerDigitalDown)
                         UpdateHandAndHopefullyInBackendToo(true);
                 }
                 if (hit.transform.name == "Logout Panel")
                 {
                     logoutHovered = true;
-                    if (VRInput.leftTriggerDown)
+                    if (VRInput.leftTriggerDigitalDown)
                         Logout();
                 }
 
-                if (VRInput.leftTriggerDown && hit.transform.name.Contains("Glove Button"))
+                if (VRInput.leftTriggerDigitalDown && hit.transform.name.Contains("Glove Button"))
                     sg.GloveSelected(int.Parse(hit.transform.name.Substring(13)));
-                if (VRInput.leftTriggerDown && hit.transform.name == "Confirm Button")
+                if (VRInput.leftTriggerDigitalDown && hit.transform.name == "Confirm Button")
                     sg.ConfirmSelection();
-                if (VRInput.leftTriggerDown && hit.transform.name == "Cancel Button")
+                if (VRInput.leftTriggerDigitalDown && hit.transform.name == "Cancel Button")
                     sg.CancelSelection();
             }
             else
@@ -91,27 +91,27 @@ public class HubworldMenu : MonoBehaviour
                 if (hit.transform.name == "Left Hand Button")
                 {
                     leftHandHovered = true;
-                    if (VRInput.rightTriggerDown)
+                    if (VRInput.rightTriggerDigitalDown)
                         UpdateHandAndHopefullyInBackendToo(false);
                 }
                 if (hit.transform.name == "Right Hand Button")
                 {
                     rightHandHovered = true;
-                    if (VRInput.rightTriggerDown)
+                    if (VRInput.rightTriggerDigitalDown)
                         UpdateHandAndHopefullyInBackendToo(true);
                 }
                 if (hit.transform.name == "Logout Panel")
                 {
                     logoutHovered = true;
-                    if (VRInput.rightTriggerDown)
+                    if (VRInput.rightTriggerDigitalDown)
                         Logout();
                 }
 
-                if (VRInput.rightTriggerDown && hit.transform.name.Contains("Glove Button"))
+                if (VRInput.rightTriggerDigitalDown && hit.transform.name.Contains("Glove Button"))
                         sg.GloveSelected(int.Parse(hit.transform.name.Substring(13)));
-                if (VRInput.rightTriggerDown && hit.transform.name == "Confirm Button")
+                if (VRInput.rightTriggerDigitalDown && hit.transform.name == "Confirm Button")
                     sg.ConfirmSelection();
-                if (VRInput.rightTriggerDown && hit.transform.name == "Cancel Button")
+                if (VRInput.rightTriggerDigitalDown && hit.transform.name == "Cancel Button")
                     sg.CancelSelection();
             }
             else

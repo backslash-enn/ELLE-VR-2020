@@ -17,7 +17,6 @@ public class MenuTerm : MonoBehaviour
 
     public void ToggleTerm()
     {
-        print($"I, {gameObject.name}, index {termIndex}, am now toggling");
         menu.ToggleTerm(termIndex);
     }
 }
