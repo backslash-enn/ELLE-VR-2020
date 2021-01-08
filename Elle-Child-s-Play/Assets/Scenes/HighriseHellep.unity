@@ -23840,6 +23840,11 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2048225531791436236, guid: edce67bc8223e4549bc6e324d3a528c2,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2242483904441456905, guid: edce67bc8223e4549bc6e324d3a528c2,
         type: 3}
       propertyPath: manager
@@ -32440,6 +32445,7 @@ MonoBehaviour:
   currentGameMode: 0
   moduleList: []
   termList: []
+  questionList: []
   termEnabled: 
   currentModule:
     moduleID: 0
