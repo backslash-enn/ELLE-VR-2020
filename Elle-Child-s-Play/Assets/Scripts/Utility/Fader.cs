@@ -30,7 +30,6 @@ public class Fader : MonoBehaviour
 
     public void Fade(bool fadeIn = true, float speed = 1, bool instant = false)
     {
-        print("FADING.");
         if(instant)
         {
             cg.alpha = fadeIn ? 1 : 0;

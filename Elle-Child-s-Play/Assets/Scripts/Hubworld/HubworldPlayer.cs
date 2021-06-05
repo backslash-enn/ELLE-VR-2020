@@ -36,10 +36,10 @@ public class HubworldPlayer : MonoBehaviour
 
         Debug.DrawRay(groundT.position, lookDir, Color.blue);
 
-        Vector2 s = ELLEAPI.rightHanded ? VRInput.leftStick : VRInput.rightStick;
+        Vector2 s = ELLEAPI.rightHanded ? VRInput.rightStick : VRInput.leftStick;
         float moveAng = Mathf.Atan2(-s.y, s.x) * Mathf.Rad2Deg - 90;
         
-        float moveVel = VRInput.leftStick.magnitude * moveSpeed;
+        float moveVel = (ELLEAPI.rightHanded ? VRInput.rightStick.magnitude : VRInput.leftStick.magnitude) * moveSpeed;
         if (moveVel > moveSpeed) moveVel = moveSpeed;
         
         Vector3 moveDir = Quaternion.AngleAxis(moveAng, upVector) * lookDir;
@@ -48,7 +48,7 @@ public class HubworldPlayer : MonoBehaviour
 
         rb.velocity = moveDir * moveVel;
 
-        transform.Rotate(Vector3.up * (ELLEAPI.rightHanded ? VRInput.rightStick.x : VRInput.leftStick.x) * rotationSpeed * 10 * Time.deltaTime);
+        transform.Rotate(Vector3.up * (ELLEAPI.rightHanded ? VRInput.leftStick.x : VRInput.rightStick.x) * rotationSpeed * 10 * Time.deltaTime);
 
         if ((VRInput.a || VRInput.x) && chosenScene != "")
             StartCoroutine(LoadScene(chosenScene));

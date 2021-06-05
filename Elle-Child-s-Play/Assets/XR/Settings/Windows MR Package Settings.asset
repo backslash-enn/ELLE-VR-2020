@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e679265d16d650945812b915bb9d5cc3, type: 3}
   m_Name: Windows MR Package Settings
   m_EditorClassIdentifier: 
-  Keys: 0e000000
+  Keys: 0e00000001000000
   Values:
   - {fileID: 2426900050480677623}
+  - {fileID: 6592696193693138443}
   BuildValues: []
 --- !u!114 &2426900050480677623
 MonoBehaviour:
@@ -30,3 +31,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   DepthBufferFormat: 1
   UseSharedDepthBuffer: 1
+--- !u!114 &6592696193693138443
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed912223f7b3af74d8e196b2a4e662b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DepthBufferFormat: 0
+  UseSharedDepthBuffer: 0

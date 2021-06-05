@@ -271,7 +271,6 @@ public class ELLEAPI : MonoBehaviour
 
     public static void GetTexture(Term term)
     {
-        print("starting get texture");
         // Coroutines cannot be static. This is my hacky workaround
         var instance = GameObject.Find(GOName).GetComponent<ELLEAPI>();
         instance.StartCoroutine(instance.GetTextureCoroutine(term));

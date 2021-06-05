@@ -1,11 +1,14 @@
-﻿using UnityEngine.XR;
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.InputSystem;
+using System;
+using UnityEngine.EventSystems;
 
-// Handles all VR Input for the entire game. Any other class that wants to poll VR input gets it from here.
-
+/// Handles all VR Input for the entire game. Any other class that wants to poll VR input gets it from here.
 public class VRInput : MonoBehaviour
 {
-    private static InputDevice leftHand, rightHand;
+    public HandControls leftHand;
+    public HandControls rightHand;
+    public InputActionReference start;
 
     public static float leftTrigger, rightTrigger;
     public static bool leftTriggerDigital, rightTriggerDigital;
@@ -27,75 +30,96 @@ public class VRInput : MonoBehaviour
     private static bool leftHandContinuousVib, rightHandContinuousVib;
     private static float leftHandContinuousVibStrength, rightHandContinuousVibStrength;
 
-    void Start()
+    public BaseInputModule leftHandEventSystem, rightHandEventSystem;
+
+    [SerializeField]
+    InputActionAsset m_ActionAsset;
+    public InputActionAsset actionAsset
     {
-        leftHand = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
-        rightHand = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
+        get => m_ActionAsset;
+        set => m_ActionAsset = value;
     }
+
+    private void OnEnable()
+    {
+        if (m_ActionAsset != null)
+        {
+            m_ActionAsset.Enable();
+        }
+
+        if (ELLEAPI.rightHanded)
+            leftHandEventSystem.enabled = false;
+        else
+            rightHandEventSystem.enabled = false;
+    }
+
 
     void Update()
     {
         bool temp;
 
-        leftHand.TryGetFeatureValue(CommonUsages.trigger, out leftTrigger);
+        leftTrigger = leftHand.trigger.action.ReadValue<float>();
         temp = leftTriggerDigital;
         leftTriggerDigital = leftTrigger >= digitalThreshold;
         leftTriggerDigitalDown = (!temp && leftTriggerDigital);
         leftTriggerDigitalUp = (temp && !leftTriggerDigital);
-        rightHand.TryGetFeatureValue(CommonUsages.trigger, out rightTrigger);
+        rightTrigger = rightHand.trigger.action.ReadValue<float>();
         temp = rightTriggerDigital;
         rightTriggerDigital = rightTrigger >= digitalThreshold;
         rightTriggerDigitalDown = (!temp && rightTriggerDigital);
         rightTriggerDigitalUp = (temp && !rightTriggerDigital);
 
-        leftHand.TryGetFeatureValue(CommonUsages.grip, out leftGrip);
+        leftGrip = leftHand.grip.action.ReadValue<float>();
         temp = leftGripDigital;
         leftGripDigital = leftGrip >= digitalThreshold;
         leftGripDown = (!temp && leftGripDigital);
         leftGripUp = (temp && !leftGripDigital);
-        rightHand.TryGetFeatureValue(CommonUsages.grip, out rightGrip);
+        rightGrip = rightHand.grip.action.ReadValue<float>();
         temp = rightGripDigital;
         rightGripDigital = rightGrip >= digitalThreshold;
         rightGripDown = (!temp && rightGripDigital);
         rightGripUp = (temp && !rightGripDigital);
 
         temp = a;
-        rightHand.TryGetFeatureValue(CommonUsages.primaryButton, out a);
+        a = (rightHand.primary.action.ReadValue<float>() == 1);
         aDown = (!temp && a);
         aUp = (temp && !a);
         temp = b;
-        rightHand.TryGetFeatureValue(CommonUsages.secondaryButton, out b);
+        b = (rightHand.secondary.action.ReadValue<float>() == 1);
         bDown = (!temp && b);
         bUp = (temp && !b);
         temp = x;
-        leftHand.TryGetFeatureValue(CommonUsages.primaryButton, out x);
+        x = (leftHand.primary.action.ReadValue<float>() == 1);
         xDown = (!temp && x);
         xUp = (temp && !x);
         temp = y;
-        leftHand.TryGetFeatureValue(CommonUsages.secondaryButton, out y);
+        y = (leftHand.secondary.action.ReadValue<float>() == 1);
         yDown = (!temp && y);
         yUp = (temp && !y);
 
 
-        leftHand.TryGetFeatureValue(CommonUsages.primary2DAxis, out leftStick);
-        rightHand.TryGetFeatureValue(CommonUsages.primary2DAxis, out rightStick);
+        leftStick = leftHand.stick.action.ReadValue<Vector2>();
+        rightStick = rightHand.stick.action.ReadValue<Vector2>();
 
         temp = leftStickClick;
-        leftHand.TryGetFeatureValue(CommonUsages.primary2DAxisClick, out leftStickClick);
+        leftStickClick = (leftHand.stickClick.action.ReadValue<float>() == 1);
         leftStickClickDown = (!temp && leftStickClick);
         leftStickClickUp = (temp && !leftStickClick);
         temp = rightStickClick;
-        rightHand.TryGetFeatureValue(CommonUsages.primary2DAxisClick, out rightStickClick);
+        rightStickClick = (rightHand.stickClick.action.ReadValue<float>() == 1);
         rightStickClickDown = (!temp && rightStickClick);
         rightStickClickUp = (temp && !rightStickClick);
 
         temp = startButton;
-        leftHand.TryGetFeatureValue(CommonUsages.menuButton, out startButton);
+        startButton = (start.action.ReadValue<float>() == 1);
         startButtonDown = (!temp && startButton);
         startButtonUp = (temp && !startButton);
 
+
+        // !!!!!!!!!!!!!Vibes Only!!!!!!!!!!!!!
         if (leftHandContinuousVib)
         {
+            /*
             if (leftHand.TryGetHapticCapabilities(out HapticCapabilities capabilities))
             {
                 if (capabilities.supportsImpulse)
@@ -104,10 +128,12 @@ public class VRInput : MonoBehaviour
                     leftHand.SendHapticImpulse(channel, leftHandContinuousVibStrength, Time.deltaTime + 0.0001f);
                 }
             }
+            */
         }
 
         if (rightHandContinuousVib)
         {
+            /*
             if (rightHand.TryGetHapticCapabilities(out HapticCapabilities capabilities))
             {
                 if (capabilities.supportsImpulse)
@@ -116,42 +142,51 @@ public class VRInput : MonoBehaviour
                     rightHand.SendHapticImpulse(channel, rightHandContinuousVibStrength, Time.deltaTime + 0.0001f);
                 }
             }
+            */
         }
     }
 
     public static void LeftHandVibrationEvent(float strength, float duration)
     {
-        if (leftHand.TryGetHapticCapabilities(out HapticCapabilities capabilities))
-        {
-            if (capabilities.supportsImpulse)
-            {
-                uint channel = 0;
-                leftHand.SendHapticImpulse(channel, strength, duration);
-            }
-        }
+        //if (leftHand.TryGetHapticCapabilities(out HapticCapabilities capabilities))
+        //{
+        //    if (capabilities.supportsImpulse)
+        //    {
+        //        uint channel = 0;
+        //        leftHand.SendHapticImpulse(channel, strength, duration);
+        //    }
+        //}
     }
 
     public static void RightHandVibrationEvent(float strength, float duration)
     {
-        if (rightHand.TryGetHapticCapabilities(out HapticCapabilities capabilities))
-        {
-            if (capabilities.supportsImpulse)
-            {
-                uint channel = 0;
-                rightHand.SendHapticImpulse(channel, strength, duration);
-            }
-        }
+        //if (rightHand.TryGetHapticCapabilities(out HapticCapabilities capabilities))
+        //{
+        //    if (capabilities.supportsImpulse)
+        //    {
+        //        uint channel = 0;
+        //        rightHand.SendHapticImpulse(channel, strength, duration);
+        //    }
+        //}
     }
 
     public static void LeftHandContinuousVibration(bool on, float strength)
     {
-        leftHandContinuousVib = on;
-        leftHandContinuousVibStrength = strength;
+        //leftHandContinuousVib = on;
+        //leftHandContinuousVibStrength = strength;
     }
 
     public static void RightHandContinuousVibration(bool on, float strength)
     {
-        rightHandContinuousVib = on;
-        rightHandContinuousVibStrength = strength;
+        //rightHandContinuousVib = on;
+        //rightHandContinuousVibStrength = strength;
+    }
+
+    [Serializable]
+    public class HandControls
+    {
+        public InputActionReference primary, secondary, stickClick;
+        public InputActionReference trigger, grip;
+        public InputActionReference stick;
     }
 }
