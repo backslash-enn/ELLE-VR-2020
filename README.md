@@ -1,6 +1,12 @@
 # ELLE VR 2020: Ellements of Learning
 **Ellements of Learning** is a collection of fun, interactive mini games that focus on a different aspects of language learning. All mini games coexist in what we call "The Hubworld". The game is scalable because new mini games are able to be incorporated into the Hubworld.
 
+## Known Issues
+Recently this project was switched over to the new OpenXR standard for input. This is great, since it makes compatibility across different hardware a breeze, but this initial implementation did bring about a few important issues:
+1. Vibration Support is currently broken. I did not know how to implement vibration with this new system. As soon as this gets figured out, the VRInput.cs file can be edited to resolve this issue
+2. The start button does not work!...well, sort of. As far as I can tell, the start button does work. But when you press it it triggers the SteamVR menu and does not trigger the pause menu in-game. Note that I have no clue if this issue is unique to my setup, or my hardware, or if it's universal. But not being able to enter the game's pause menu is a pretty big deal
+3. This is unrelated to the VR input, but is probably the biggest issue as of today. In the ELLEApi.cs script, the api calls are currently made synchronously instead of asynchronously. This means there is a noticable albeit small delay at certain points of the game when api calls are made. For a regular game, this is a small issue. For VR it's huge, because such studders makes the tracking bug out and makes the user's entire vision jitter for a second, inducing motion sickness
+
 ## How to Incorporate a New Mini Game
 After you make a new scene, follow these steps to incorporate your minigame into the existing ELLE system:
 
@@ -32,7 +38,7 @@ After you make a new scene, follow these steps to incorporate your minigame into
             * myGameMenuReference.moduleList gives you the list of modules the player sees in the menu
             * myGameMenuReference.currentModule gives you the module the player picked from the menu
             * setting myGameMenuReference.goodToLeave = false disables using the b button in the main menu to leave, which may or may not be useful to your game
-    * There is also a script in *Assets -> Scripts -> Utility* called VRInput. Put this script on a Gameobject in the scene. It has static fields for VR Input
+    * There is also a prefab in *Assets -> Prefabs -> General* called VRInput_EventSystems. Drag this prefab into the scene. The attached script has static fields for VR Input
         * has public static bools a, b, x, y, leftStickClick, rightStickClick, and startButton. The bool is true iff the corresponding button is pressed.
             * *Example*: VRInput.b. This is a static call.
         * has public static bools leftTriggerDigital, rightTriggerDigital, leftGripDigital, and rightGripDigital. The bool is true iff the trigger or grip is pressed more than a certain threshold. This threshold is a float called digitalThreshold, and you can change it on the scrip's inspector. Default value is 0.3.
